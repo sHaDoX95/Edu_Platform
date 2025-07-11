@@ -11,12 +11,22 @@
 <h2><?= htmlspecialchars($course['title']) ?></h2>
 <p><?= htmlspecialchars($course['description']) ?></p>
 
+<p><strong>Прогресс:</strong> <?= $completedCount ?> из <?= $totalLessons ?> уроков</p>
+
 <h3>Уроки:</h3>
 <ol>
 <?php foreach ($course['lessons'] as $lesson): ?>
     <li>
         <strong><?= htmlspecialchars($lesson['title']) ?></strong><br>
         <p><?= nl2br(htmlspecialchars($lesson['content'])) ?></p>
+
+        <?php if (Progress::isCompleted($user['id'], $lesson['id'])): ?>
+            <p style="color: green;">✅ Пройден</p>
+            <a href="?id=<?= $course['id'] ?>&uncomplete=<?= $lesson['id'] ?>">Отметить как НЕ пройденный</a>
+        <?php else: ?>
+            <a href="?id=<?= $course['id'] ?>&complete=<?= $lesson['id'] ?>">Отметить как пройденный</a>
+        <?php endif; ?>
+        <hr>
     </li>
 <?php endforeach; ?>
 </ol>
