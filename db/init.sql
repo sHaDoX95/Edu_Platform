@@ -26,6 +26,19 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
     UNIQUE (user_id, lesson_id)
 );
 
+CREATE TABLE questions (
+    id SERIAL PRIMARY KEY,
+    lesson_id INT REFERENCES lessons(id) ON DELETE CASCADE,
+    question TEXT NOT NULL
+);
+
+CREATE TABLE options (
+    id SERIAL PRIMARY KEY,
+    question_id INT REFERENCES questions(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    is_correct BOOLEAN DEFAULT FALSE
+);
+
 INSERT INTO courses (title, description) VALUES
 ('Курс по HTML', 'Основы HTML: теги, структура и верстка'),
 ('Курс по CSS', 'Оформление страниц, стили, макеты'),
