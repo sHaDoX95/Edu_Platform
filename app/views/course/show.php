@@ -36,6 +36,11 @@
 
                     <br><br>
                     <a href="/test/show?lesson_id=<?= $lesson['id'] ?>">📝 Пройти тест</a>
+                    <?php if (Progress::isTestPassed($user['id'], $lesson['id'])): ?>
+                        <p style="color: green;">🧪 Тест пройден</p>
+                    <?php else: ?>
+                        <p style="color: red;">🧪 Тест не пройден</p>
+                    <?php endif; ?>
                     <hr>
                 </li>
             <?php endforeach; ?>

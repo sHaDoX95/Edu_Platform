@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../models/Lesson.php';
+require_once __DIR__ . '/../models/Test.php';
+
 $user = Auth::user();
 ?>
 
@@ -7,7 +10,7 @@ $user = Auth::user();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=1">
     <title>Личный кабинет</title>
 </head>
 <body>
@@ -31,33 +34,56 @@ $user = Auth::user();
             <ul>
                 <?php foreach ($courses as $course): ?>
                     <?php
-                        $total = (int)$course['total_lessons'];
-                        $done = (int)$course['completed_lessons'];
-                        $percent = $total > 0 ? round(($done / $total) * 100) : 0;
                         $lessons = Lesson::getByCourse($course['id']);
+
+                        $stepsTotal = 0;
+                        $stepsDone = 0;
+
+                        foreach ($lessons as $lesson) {
+                            $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
+                            $hasTest = Test::existsForLesson($lesson['id']);
+                            $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
+
+                            $stepsTotal++;
+                            if ($lessonDone) $stepsDone++;
+
+                            if ($hasTest) {
+                                $stepsTotal++;
+                                if ($testPassed) $stepsDone++;
+                            }
+                        }
+
+                        $percent = $stepsTotal > 0 ? round(($stepsDone / $stepsTotal) * 100) : 0;
                     ?>
                     <li style="margin-bottom: 30px;">
                         <strong><?= htmlspecialchars($course['title']) ?></strong><br>
                         <small><?= htmlspecialchars($course['description']) ?></small><br>
-                        ✅ Пройдено <?= $done ?> из <?= $total ?> (<?= $percent ?>%)
 
-                        <div class="progress-bar-container">
+                        📊 Общий прогресс: <?= $stepsDone ?> из <?= $stepsTotal ?> шагов (<?= $percent ?>%)
+
+                        <div class="progress-bar-container" style="margin-top: 5px;">
                             <div class="progress-bar" style="width: <?= $percent ?>%"></div>
                         </div>
 
-                        <a href="/course/show?id=<?= $course['id'] ?>">📖 Перейти к курсу</a>
+                        <a href="/course/show?id=<?= $course['id'] ?>">📓 Перейти к курсу</a>
 
                         <?php if (count($lessons) > 0): ?>
                             <ul style="margin-top: 10px;">
                                 <?php foreach ($lessons as $lesson): ?>
                                     <?php
                                         $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
-                                        $testDone = Progress::isTestPassed($user['id'], $lesson['id']);
+                                        $hasTest = Test::existsForLesson($lesson['id']);
+                                        $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
+
+                                        $class = '';
+                                        if ($lessonDone && $testPassed) $class = 'done';
+                                        elseif ($lessonDone || $testPassed) $class = 'partial';
+                                        else $class = 'not-done';
                                     ?>
-                                    <li>
+                                    <li class="lesson-item <?= $class ?>">
                                         <strong><?= htmlspecialchars($lesson['title']) ?></strong><br>
-                                        ✅ Урок: <?= $lessonDone ? 'Пройден' : 'Не пройден' ?><br>
-                                        🧪 Тест: <?= $testDone ? 'Пройден' : 'Не пройден' ?>
+                                        📖 Урок: <?= $lessonDone ? 'Пройден' : 'Не пройден' ?><br>
+                                        🧪 Тест: <?= $hasTest ? ($testPassed ? 'Пройден' : 'Не пройден') : 'Нет теста' ?>
                                     </li>
                                 <?php endforeach; ?>
                             </ul>

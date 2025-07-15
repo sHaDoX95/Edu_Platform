@@ -33,4 +33,11 @@ class Test {
 
         return $test;
     }
+
+    public static function existsForLesson($lessonId) {
+        $pdo = Database::connect();
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE lesson_id = ?");
+        $stmt->execute([$lessonId]);
+        return $stmt->fetchColumn() > 0;
+    }
 }
