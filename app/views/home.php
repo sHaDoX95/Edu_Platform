@@ -13,6 +13,17 @@ $user = Auth::user();
     <link rel="stylesheet" href="/css/style.css?v=1">
     <title>Личный кабинет</title>
 </head>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
+        });
+    });
+</script>
 <body>
     <nav>
         <p>
