@@ -33,8 +33,8 @@
                     <?php else: ?>
                         <a href="?id=<?= $course['id'] ?>&complete=<?= $lesson['id'] ?>">Отметить как пройденный</a>
                     <?php endif; ?>
-                    
-                    <br>
+
+                    <br><br>
                     <a href="/test/show?lesson_id=<?= $lesson['id'] ?>">📝 Пройти тест</a>
                     <hr>
                 </li>

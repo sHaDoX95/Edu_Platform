@@ -39,6 +39,10 @@ CREATE TABLE options (
     is_correct BOOLEAN DEFAULT FALSE
 );
 
+ALTER TABLE lesson_progress
+ADD COLUMN test_score INTEGER,
+ADD COLUMN test_passed BOOLEAN DEFAULT FALSE;
+
 INSERT INTO courses (title, description) VALUES
 ('Курс по HTML', 'Основы HTML: теги, структура и верстка'),
 ('Курс по CSS', 'Оформление страниц, стили, макеты'),

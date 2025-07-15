@@ -33,4 +33,31 @@ class Progress {
         $stmt->execute(['uid' => $userId, 'cid' => $courseId]);
         return (int)$stmt->fetchColumn();
     }
+
+    public static function isTestPassed($userId, $lessonId) {
+        $pdo = Database::connect();
+        $stmt = $pdo->prepare("SELECT test_passed FROM lesson_progress WHERE user_id = ? AND lesson_id = ?");
+        $stmt->execute([$userId, $lessonId]);
+        $result = $stmt->fetch();
+    
+        return $result ? (bool)$result['test_passed'] : false;
+    }
+    
+    public static function saveTestResult($userId, $lessonId, $score, $passed) {
+        $pdo = Database::connect();
+    
+        $stmt = $pdo->prepare("
+            INSERT INTO lesson_progress (user_id, lesson_id, test_score, test_passed)
+            VALUES (:user_id, :lesson_id, :score, :passed)
+            ON CONFLICT (user_id, lesson_id) DO UPDATE 
+            SET test_score = EXCLUDED.test_score,
+                test_passed = EXCLUDED.test_passed
+        ");
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':lesson_id' => $lessonId,
+            ':score' => $score,
+            ':passed' => $passed ? 'true' : 'false',
+        ]);
+    }
 }

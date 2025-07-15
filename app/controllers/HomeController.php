@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../models/Course.php';
+require_once __DIR__ . '/../models/Progress.php';
+require_once __DIR__ . '/../models/Lesson.php';
 
 class HomeController {
     public function index() {

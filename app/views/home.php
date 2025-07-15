@@ -1,4 +1,7 @@
-<?php $user = Auth::user(); ?>
+<?php
+$user = Auth::user();
+?>
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -15,6 +18,7 @@
             <a href="/auth/logout">🚪 Выйти</a>
         </p>
     </nav>
+
     <div class="container">
         <h2>👤 Личный кабинет</h2>
         <p>Добро пожаловать, <strong><?= htmlspecialchars($user['name']) ?></strong>!</p>
@@ -30,8 +34,9 @@
                         $total = (int)$course['total_lessons'];
                         $done = (int)$course['completed_lessons'];
                         $percent = $total > 0 ? round(($done / $total) * 100) : 0;
+                        $lessons = Lesson::getByCourse($course['id']);
                     ?>
-                    <li style="margin-bottom: 20px;">
+                    <li style="margin-bottom: 30px;">
                         <strong><?= htmlspecialchars($course['title']) ?></strong><br>
                         <small><?= htmlspecialchars($course['description']) ?></small><br>
                         ✅ Пройдено <?= $done ?> из <?= $total ?> (<?= $percent ?>%)
@@ -41,6 +46,22 @@
                         </div>
 
                         <a href="/course/show?id=<?= $course['id'] ?>">📖 Перейти к курсу</a>
+
+                        <?php if (count($lessons) > 0): ?>
+                            <ul style="margin-top: 10px;">
+                                <?php foreach ($lessons as $lesson): ?>
+                                    <?php
+                                        $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
+                                        $testDone = Progress::isTestPassed($user['id'], $lesson['id']);
+                                    ?>
+                                    <li>
+                                        <strong><?= htmlspecialchars($lesson['title']) ?></strong><br>
+                                        ✅ Урок: <?= $lessonDone ? 'Пройден' : 'Не пройден' ?><br>
+                                        🧪 Тест: <?= $testDone ? 'Пройден' : 'Не пройден' ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>

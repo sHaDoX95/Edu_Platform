@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../models/Test.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../models/Progress.php';
 
 class TestController {
     public function show() {
@@ -18,10 +19,16 @@ class TestController {
 
     public function submit() {
         Auth::requireLogin();
+        $user = Auth::user();
+        $userId = $user['id'];
+        $lessonId = $_POST['lesson_id'] ?? null;
 
-        $lessonId = $_POST['lesson_id'];
+        if (!$lessonId) {
+            echo "Урок не найден";
+            return;
+        }
+
         $test = Test::getByLesson($lessonId);
-
         $correct = 0;
         $total = count($test);
 
@@ -33,6 +40,11 @@ class TestController {
                 }
             }
         }
+
+        $score = $total > 0 ? round(($correct / $total) * 100) : 0;
+        $passed = $score >= 70;
+
+        Progress::saveTestResult($userId, $lessonId, $score, $passed);
 
         require __DIR__ . '/../views/test/result.php';
     }
