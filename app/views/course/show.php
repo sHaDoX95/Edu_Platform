@@ -16,9 +16,10 @@
         </p>
     </nav>
     <div class="container">
+        <a href="/course">← Назад к списку курсов</a>
         <h2><?= htmlspecialchars($course['title']) ?></h2>
         <p><?= htmlspecialchars($course['description']) ?></p>
-        <p><strong>Прогресс:</strong> <?= $completedCount ?> из <?= $totalLessons ?> уроков</p>
+        <p><strong>Прогресс:</strong>
 
         <h3>Уроки:</h3>
         <ol>
@@ -35,18 +36,16 @@
                     <?php endif; ?>
 
                     <br><br>
-                    <a href="/test/show?lesson_id=<?= $lesson['id'] ?>">📝 Пройти тест</a>
                     <?php if (Progress::isTestPassed($user['id'], $lesson['id'])): ?>
                         <p style="color: green;">🧪 Тест пройден</p>
                     <?php else: ?>
                         <p style="color: red;">🧪 Тест не пройден</p>
                     <?php endif; ?>
+                    <a href="/test/show?lesson_id=<?= $lesson['id'] ?>">📝 Пройти тест</a>
                     <hr>
                 </li>
             <?php endforeach; ?>
-        </ol>
-
-        <a href="/course">← Назад к списку курсов</a>
+        </ol>      
     </div>
 </body>
 </html>
