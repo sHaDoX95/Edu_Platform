@@ -17,12 +17,12 @@
     </nav>
     <div class="container">
         <h2>Доступные курсы</h2>
-        <ul>
+        <ul class="course-list">
             <?php foreach ($courses as $course): ?>
                 <li>
                     <a href="/course/show?id=<?= $course['id'] ?>">
                         <?= htmlspecialchars($course['title']) ?>
-                    </a><br>
+                    </a>
                     <small><?= htmlspecialchars($course['description']) ?></small>
                 </li>
             <?php endforeach; ?>

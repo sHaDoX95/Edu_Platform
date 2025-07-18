@@ -123,3 +123,34 @@ hr {
     width: 0;
     transition: width 0.8s ease-in-out;
 }
+
+ul.course-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul.course-list li {
+    margin-bottom: 25px;
+    font-size: 1.2em;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+ul.course-list li a {
+    font-weight: bold;
+    font-size: 1.4em;
+    color: #0056b3;
+    text-decoration: none;
+}
+
+ul.course-list li a:hover {
+    text-decoration: underline;
+}
+
+ul.course-list li small {
+    display: block;
+    margin-top: 8px;
+    color: #555;
+}
