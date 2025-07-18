@@ -1,4 +1,14 @@
-<?php $user = Auth::user(); ?>
+<?php
+    $user = Auth::user();
+    $completedCount = 0;
+    $totalLessons = count($course['lessons']);
+
+    foreach ($course['lessons'] as $lesson) {
+        if (Progress::isCompleted($user['id'], $lesson['id']) && Progress::isTestPassed($user['id'], $lesson['id'])) {
+            $completedCount++;
+        }
+    }
+?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -19,7 +29,7 @@
         <a href="/course">← Назад к списку курсов</a>
         <h2><?= htmlspecialchars($course['title']) ?></h2>
         <p><?= htmlspecialchars($course['description']) ?></p>
-        <p><strong>Прогресс:</strong>
+        <p><strong>Прогресс:</strong> <?= $completedCount ?> из <?= $totalLessons ?> тем пройдено</p>
 
         <h3>Уроки:</h3>
         <ol>
