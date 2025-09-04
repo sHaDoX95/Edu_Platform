@@ -42,6 +42,21 @@ CREATE TABLE options (
 ALTER TABLE lesson_progress
 ADD COLUMN test_score INTEGER,
 ADD COLUMN test_passed BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student';
+ALTER TABLE courses ADD COLUMN teacher_id INTEGER REFERENCES users(id);
+
+INSERT INTO users (name, email, password, role)
+VALUES ('user1', 'user1@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9ptzKB15ELG9KNSwcrce86K', 'user');
+
+INSERT INTO users (name, email, password, role)
+VALUES ('teacher1', 'teacher1@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9ptzKB15ELG9KNSwcrce86K', 'teacher');
+
+INSERT INTO users (name, email, password, role)
+VALUES ('teacher2', 'teacher2@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9ptzKB15ELG9KNSwcrce86K', 'teacher');
+
+UPDATE courses
+SET teacher_id = (SELECT id FROM users WHERE name = 'teacher1')
+WHERE id = 1;
 
 INSERT INTO courses (title, description) VALUES
 ('Курс по HTML', 'Основы HTML: теги, структура и верстка'),

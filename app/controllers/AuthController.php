@@ -10,7 +10,11 @@ class AuthController {
             $user = User::findByEmail($email);
             if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
-                header('Location: /course');
+                if ($user['role'] === 'teacher') {
+                    header("Location: /teacher");
+                } else {
+                    header("Location: /home");
+                }
                 exit;
             } else {
                 $error = "Неверный логин или пароль";

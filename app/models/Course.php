@@ -43,4 +43,43 @@ class Course {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
+    public static function create($title, $description, $teacherId) {
+        $pdo = Database::connect();
+        $stmt = $pdo->prepare("INSERT INTO courses (title, description, teacher_id) VALUES (:title, :description, :tid)");
+        $stmt->execute([
+            'title' => $title,
+            'description' => $description,
+            'tid' => $teacherId
+        ]);
+    }
+
+    public static function findByTeacher($teacherId) {
+        $pdo = Database::connect();
+        $stmt = $pdo->prepare("SELECT * FROM courses WHERE teacher_id = :tid");
+        $stmt->execute(['tid' => $teacherId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function update($id, $title, $description) {
+        $db = Database::connect();
+        $stmt = $db->prepare("UPDATE courses SET title = ?, description = ? WHERE id = ?");
+        return $stmt->execute([$title, $description, $id]);
+    }
+
+    public static function find($id) {
+        $db = Database::connect();
+        $stmt = $db->prepare("SELECT * FROM courses WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function delete($id) {
+        $db = Database::connect();
+        
+        $stmt = $db->prepare("DELETE FROM lessons WHERE course_id = ?");
+        $stmt->execute([$id]);
+        
+        $stmt = $db->prepare("DELETE FROM courses WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
 }

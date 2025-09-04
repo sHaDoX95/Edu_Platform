@@ -9,13 +9,14 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function create($email, $password, $name) {
+    public static function create($name, $email, $password, $role = 'student') {
         $pdo = Database::connect();
-        $stmt = $pdo->prepare("INSERT INTO users (email, password, name) VALUES (:email, :password, :name)");
+        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (:name, :email, :password, :role)");
         $stmt->execute([
+            'name' => $name,
             'email' => $email,
-            'password' => $password,
-            'name' => $name
+            'password' => password_hash($password, PASSWORD_DEFAULT),
+            'role' => $role
         ]);
     }
 }

@@ -21,4 +21,12 @@ class Auth {
             exit;
         }
     }
+
+    public static function requireRole($role) {
+        $user = self::user();
+        if (!$user || $user['role'] !== $role) {
+            header("Location: /auth/login");
+            exit;
+        }
+    }    
 }

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../controllers/TeacherController.php';
 
 class Router {
     public function route($uri) {
