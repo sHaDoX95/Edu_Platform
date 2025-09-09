@@ -23,6 +23,7 @@
             Вы вошли как <strong><?= htmlspecialchars($user['name']) ?></strong> |
             <?php if ($user['role'] === 'teacher'): ?>
                 <a href="/teacher">👨‍🏫 Личный кабинет</a> |
+                <a href="/lesson/create?course_id=<?= $course['id'] ?>">➕ Добавить урок</a> |
             <?php else: ?>
                 <a href="/home">👤 Личный кабинет</a> |
             <?php endif; ?>
@@ -30,7 +31,7 @@
         </p>
     </nav>
     <div class="container">
-        <a href="/course">← Назад к списку курсов</a>
+        <a href="/course">← К списку курсов</a>
         <h2><?= htmlspecialchars($course['title']) ?></h2>
         <p><?= htmlspecialchars($course['description']) ?></p>
         <p><strong>Прогресс:</strong> <?= $completedCount ?> из <?= $totalLessons ?> тем пройдено</p>

@@ -45,7 +45,7 @@ $user = Auth::user();
             <ul>
                 <?php foreach ($courses as $course): ?>
                     <?php
-                        $lessons = Lesson::getByCourse($course['id']);
+                        $lessons = Lesson::findByCourse($course['id']);
 
                         $stepsTotal = 0;
                         $stepsDone = 0;
