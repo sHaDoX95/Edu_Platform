@@ -146,7 +146,7 @@ class TeacherController {
             return;
         }
 
-        $lessons = Lesson::findByCourse($courseId);
+        $lessons = Lesson::findWithCourse($courseId);
         require_once __DIR__ . '/../views/teacher/lessons/index.php';
     }
 
@@ -197,14 +197,41 @@ class TeacherController {
             return;
         }
 
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
+        $lessonId = $_GET['id'] ?? null;
+
+        if (!$lessonId) {
+            echo "Ошибка: не указан урок";
+            return;
+        }
+
+        require_once __DIR__ . '/../models/Lesson.php';
+        $lesson = Lesson::findWithCourse($lessonId);
+
+        if (!$lesson) {
             echo "Ошибка: урок не найден";
             return;
         }
 
-        $lesson = Lesson::find($id);
-        require_once __DIR__ . '/../views/teacher/lessons/edit.php';
+        if ($lesson['teacher_id'] != $user['id']) {
+            http_response_code(403);
+            echo "Доступ запрещён: вы не владелец курса";
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $title = $_POST['title'] ?? '';
+            $content = $_POST['content'] ?? '';
+
+            if ($title && $content) {
+                Lesson::update($lessonId, $title, $content);
+                header("Location: /course/show?id=" . $lesson['course_id']);
+                exit;
+            } else {
+                $error = "Заполните все поля";
+            }
+        }
+
+        require_once __DIR__ . '/../views/lesson/edit.php';
     }
 
     public function updateLesson() {
@@ -240,14 +267,29 @@ class TeacherController {
             return;
         }
 
-        $id = $_GET['id'] ?? null;
-        $courseId = $_GET['course_id'] ?? null;
+        $lessonId = $_GET['id'] ?? null;
 
-        if ($id) {
-            Lesson::delete($id);
+        if (!$lessonId) {
+            echo "Ошибка: не указан урок";
+            return;
         }
 
-        header("Location: /teacher/lessons?course_id=$courseId");
+        require_once __DIR__ . '/../models/Lesson.php';
+        $lesson = Lesson::findWithCourse($lessonId);
+
+        if (!$lesson) {
+            echo "Ошибка: урок не найден";
+            return;
+        }
+
+        if ($lesson['teacher_id'] != $user['id']) {
+            http_response_code(403);
+            echo "Доступ запрещён: вы не владелец курса";
+            return;
+        }
+
+        Lesson::delete($lessonId);
+        header("Location: /course/show?id=" . $lesson['course_id']);
         exit;
     }
 

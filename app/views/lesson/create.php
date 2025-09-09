@@ -29,7 +29,7 @@ $user = Auth::user();
             <input type="text" id="title" name="title" required><br><br>
 
             <label for="content">Содержимое урока:</label><br>
-            <textarea id="content" name="content" rows="8" required></textarea><br><br>
+            <textarea id="content" name="content" rows="8"  required style="width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;"></textarea><br><br>
 
             <button type="submit">💾 Сохранить</button>
         </form>

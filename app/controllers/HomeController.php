@@ -10,14 +10,13 @@ class HomeController {
         Auth::requireLogin();
         $user = Auth::user();
 
-        $courses = Course::allWithUserProgress($user['id']);
-
         if ($user['role'] === 'teacher') {
             header("Location: /teacher");
             exit;
         }
+        
+        $courses = Course::allWithUserProgress($user['id']);
 
-        $courses = Course::all();
         require_once __DIR__ . '/../views/home.php';
     }
 }

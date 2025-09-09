@@ -40,7 +40,14 @@
         <ol>
             <?php foreach ($course['lessons'] as $lesson): ?>
                 <li>
-                    <strong><?= htmlspecialchars($lesson['title']) ?></strong><br>
+                    <?php if ($user['role'] === 'teacher'): ?>
+                        <strong><?= htmlspecialchars($lesson['title']) ?></strong>
+                        <a href="/teacher/editLesson?id=<?= $lesson['id'] ?>">✏ Редактировать</a> |
+                        <a href="/teacher/deleteLesson?id=<?= $lesson['id'] ?>&course_id=<?= $course['id'] ?>" onclick="return confirm('Удалить урок?')">🗑 Удалить</a><br>
+                    <?php else: ?>
+                        <strong><?= htmlspecialchars($lesson['title']) ?></strong><br>
+                    <?php endif; ?>    
+                
                     <p><?= nl2br(htmlspecialchars($lesson['content'])) ?></p>
 
                     <?php if (Progress::isCompleted($user['id'], $lesson['id'])): ?>

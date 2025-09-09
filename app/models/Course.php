@@ -23,7 +23,6 @@ class Course {
 
     public static function allWithUserProgress($userId) {
         $pdo = Database::connect();
-    
         $sql = "
             SELECT 
                 c.id,
@@ -37,10 +36,9 @@ class Course {
             GROUP BY c.id
             ORDER BY c.id;
         ";
-    
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['user_id' => $userId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
     
     public static function create($title, $description, $teacherId) {
