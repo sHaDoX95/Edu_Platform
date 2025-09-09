@@ -1,4 +1,6 @@
 <?php
+    require_once __DIR__ . '/../../models/Test.php';
+
     $user = Auth::user();
     $completedCount = 0;
     $totalLessons = count($course['lessons']);
@@ -58,12 +60,15 @@
                     <?php endif; ?>
 
                     <br><br>
-                    <?php if (Progress::isTestPassed($user['id'], $lesson['id'])): ?>
-                        <p style="color: green;">🧪 Тест пройден</p>
-                    <?php else: ?>
-                        <p style="color: red;">🧪 Тест не пройден</p>
+
+                    <?php if (Test::existsForLesson($lesson['id'])): ?>
+                        <?php if (Progress::isTestPassed($user['id'], $lesson['id'])): ?>
+                            <p style="color: green;">🧪 Тест пройден</p>
+                        <?php else: ?>
+                            <p style="color: red;">🧪 Тест не пройден</p>
+                        <?php endif; ?>
+                        <a href="/test/show?lesson_id=<?= $lesson['id'] ?>">📝 Пройти тест</a>
                     <?php endif; ?>
-                    <a href="/test/show?lesson_id=<?= $lesson['id'] ?>">📝 Пройти тест</a>
                     <hr>
                 </li>
             <?php endforeach; ?>

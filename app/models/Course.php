@@ -80,4 +80,27 @@ class Course {
         $stmt = $db->prepare("DELETE FROM courses WHERE id = ?");
         return $stmt->execute([$id]);
     }
+
+    public static function getStudentsWithProgress($courseId) {
+        $db = Database::connect();
+
+        $sql = "
+            SELECT 
+                u.id AS user_id,
+                u.name AS user_name,
+                COUNT(DISTINCT l.id) AS total_lessons,
+                COUNT(DISTINCT lp.id) AS completed_lessons,
+                COUNT(DISTINCT lp.id) FILTER (WHERE lp.test_passed = TRUE) AS passed_tests
+            FROM users u
+            JOIN lesson_progress lp ON lp.user_id = u.id
+            JOIN lessons l ON l.id = lp.lesson_id
+            WHERE l.course_id = :course_id
+            GROUP BY u.id, u.name
+            ORDER BY u.name;
+        ";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['course_id' => $courseId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

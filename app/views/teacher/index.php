@@ -35,6 +35,7 @@ $user = Auth::user();
                         <a href="/course/show?id=<?= $course['id'] ?>">
                             <?= htmlspecialchars($course['title']) ?>
                         </a>
+                        <a href="/teacher/students?id=<?= $course['id'] ?>">👥 Студенты</a>
                         <small><?= htmlspecialchars($course['description']) ?></small>
                         <br>
                         <a href="/course/show?id=<?= $course['id'] ?>" class="btn">Просмотреть</a> |

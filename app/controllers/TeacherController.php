@@ -301,4 +301,24 @@ class TeacherController {
 
         require __DIR__ . '/../views/teacher/courses.php';
     }
+
+    public function students() {
+        Auth::requireRole('teacher');
+
+        $courseId = $_GET['id'] ?? null;
+        if (!$courseId) {
+            die("Курс не указан");
+        }
+
+        $course = Course::find($courseId);
+
+        $user = Auth::user();
+        if ($course['teacher_id'] != $user['id']) {
+            die("Доступ запрещён");
+        }
+
+        $students = Course::getStudentsWithProgress($courseId);
+
+        require_once __DIR__ . '/../views/teacher/students.php';
+    }
 }

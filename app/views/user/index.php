@@ -87,9 +87,13 @@ $user = Auth::user();
                                         $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
 
                                         $class = '';
-                                        if ($lessonDone && $testPassed) $class = 'done';
-                                        elseif ($lessonDone || $testPassed) $class = 'partial';
-                                        else $class = 'not-done';
+                                        if ($lessonDone && (!$hasTest || $testPassed)) {
+                                            $class = 'done';
+                                        } elseif ($lessonDone || $testPassed) {
+                                            $class = 'partial';
+                                        } else {
+                                            $class = 'not-done';
+                                        }
                                     ?>
                                     <li class="lesson-item <?= $class ?>">
                                         <strong><?= htmlspecialchars($lesson['title']) ?></strong><br>
