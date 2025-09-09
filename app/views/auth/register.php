@@ -11,17 +11,23 @@
         <h2>Регистрация</h2>
         <form method="POST">
             <label>Имя:
-                <input type="text" name="name" required>
+                <input type="text" name="name" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>" required>
             </label>
             <label>Email:
-                <input type="email" name="email" required>
+                <input type="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
             </label>
             <label>Пароль:
                 <input type="password" name="password" required>
             </label>
+            <label>Подтвердите пароль:
+                <input type="password" name="password_confirm" required>
+            </label>
             <button type="submit">Зарегистрироваться</button>
         </form>
         <p><a href="/auth/login">Уже есть аккаунт? Войти</a></p>
+        <?php if (!empty($error)): ?>
+            <p class="error"><?= htmlspecialchars($error) ?></p>
+        <?php endif; ?>
     </div>
 </body>
 </html>

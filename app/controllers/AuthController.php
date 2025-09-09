@@ -27,11 +27,36 @@ class AuthController {
     public function register() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'];
-            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $password = $_POST['password'];
+            $password_confirm = $_POST['password_confirm'];
             $name = $_POST['name'];
 
-            User::create($email, $password, $name);
-            header('Location: /auth/login');
+            if ($password !== $password_confirm) {
+                $error = "Пароли не совпадают!";
+                require_once __DIR__ . '/../views/auth/register.php';
+                return;
+            }
+
+            if (User::findByEmail($email)) {
+                $error = "Пользователь с таким email уже существует!";
+                require_once __DIR__ . '/../views/auth/register.php';
+                return;
+            }
+
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $userId = User::create($email, $hashedPassword, $name);
+            $_SESSION['user_id'] = $userId;
+
+            $pdo = Database::connect();
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
+            $stmt->execute(['id' => $userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user['role'] === 'teacher') {
+                header("Location: /teacher");
+            } else {
+                header("Location: /user");
+            }
             exit;
         }
 

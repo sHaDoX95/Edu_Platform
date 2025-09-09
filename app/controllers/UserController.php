@@ -10,7 +10,7 @@ class UserController {
         Auth::requireLogin();
         $user = Auth::user();
 
-        if (!$user || $user['role'] !== 'user') {
+        if (!$user || $user['role'] !== 'student') {
             http_response_code(403);
             echo "Доступ запрещён";
             return;

@@ -46,7 +46,7 @@ ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student';
 ALTER TABLE courses ADD COLUMN teacher_id INTEGER REFERENCES users(id);
 
 INSERT INTO users (name, email, password, role)
-VALUES ('user1', 'user1@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9ptzKB15ELG9KNSwcrce86K', 'user');
+VALUES ('user1', 'user1@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9ptzKB15ELG9KNSwcrce86K', 'student');
 
 INSERT INTO users (name, email, password, role)
 VALUES ('teacher1', 'teacher1@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9ptzKB15ELG9KNSwcrce86K', 'teacher');
