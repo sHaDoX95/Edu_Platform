@@ -6,7 +6,7 @@ class Router {
         $path = parse_url($uri, PHP_URL_PATH);
         $parts = explode('/', trim($path, '/'));
 
-        $controller = $parts[0] ?? 'home';
+        $controller = $parts[0] ?? 'user';
         $action = $parts[1] ?? 'index';
 
         $controllerFile = __DIR__ . "/../controllers/" . ucfirst($controller) . "Controller.php";

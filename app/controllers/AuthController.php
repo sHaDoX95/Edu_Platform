@@ -13,7 +13,7 @@ class AuthController {
                 if ($user['role'] === 'teacher') {
                     header("Location: /teacher");
                 } else {
-                    header("Location: /home");
+                    header("Location: /user");
                 }
                 exit;
             } else {

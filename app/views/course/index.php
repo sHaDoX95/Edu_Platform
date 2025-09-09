@@ -14,7 +14,7 @@
             <?php if ($user['role'] === 'teacher'): ?>
                 <a href="/teacher">👨‍🏫 Личный кабинет</a> |
             <?php else: ?>
-                <a href="/home">👤 Личный кабинет</a> |
+                <a href="/user">👤 Личный кабинет</a> |
             <?php endif; ?>
             <a href="/auth/logout">🚪 Выйти</a>
         </p>

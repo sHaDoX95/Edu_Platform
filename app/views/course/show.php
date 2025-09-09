@@ -25,7 +25,7 @@
                 <a href="/teacher">👨‍🏫 Личный кабинет</a> |
                 <a href="/lesson/create?course_id=<?= $course['id'] ?>">➕ Добавить урок</a> |
             <?php else: ?>
-                <a href="/home">👤 Личный кабинет</a> |
+                <a href="/user">👤 Личный кабинет</a> |
             <?php endif; ?>
             <a href="/auth/logout">🚪 Выйти</a>
         </p>
