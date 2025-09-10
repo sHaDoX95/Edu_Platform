@@ -42,4 +42,12 @@ class CourseController {
     
         require_once __DIR__ . '/../views/course/show.php';
     }
+
+    public function search() {
+        $query = $_GET['q'] ?? '';
+        $results = Course::searchByTitle($query);
+        header('Content-Type: application/json');
+        echo json_encode($results);
+        exit;
+    }
 }

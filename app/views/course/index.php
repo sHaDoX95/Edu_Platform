@@ -21,7 +21,10 @@
     </nav>
     <div class="container">
         <h2>Доступные курсы</h2>
-        <ul class="course-list">
+
+        <input type="text" id="search" placeholder="🔍 Найти курс..." style="width: 100%; padding: 8px; margin-bottom: 15px;">
+
+        <ul class="course-list" id="course-list">
             <?php foreach ($courses as $course): ?>
                 <li>
                     <a href="/course/show?id=<?= $course['id'] ?>">
@@ -32,5 +35,28 @@
             <?php endforeach; ?>
         </ul>
     </div>
+
+    <script>
+    document.getElementById('search').addEventListener('input', function () {
+        const query = this.value;
+
+        fetch('/course/search?q=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById('course-list');
+                list.innerHTML = '';
+                if (data.length === 0) {
+                    list.innerHTML = '<li>❌ Ничего не найдено</li>';
+                } else {
+                    data.forEach(course => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<a href="/course/show?id=${course.id}">${course.title}</a>
+                                        <small>${course.description}</small>`;
+                        list.appendChild(li);
+                    });
+                }
+            });
+    });
+    </script>
 </body>
 </html>

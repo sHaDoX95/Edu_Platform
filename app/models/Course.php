@@ -103,4 +103,10 @@ class Course {
         $stmt->execute(['course_id' => $courseId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    public static function searchByTitle($query) {
+        $pdo = Database::connect();
+        $stmt = $pdo->prepare("SELECT id, title, description FROM courses WHERE title ILIKE :query");
+        $stmt->execute(['query' => '%' . $query . '%']);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
