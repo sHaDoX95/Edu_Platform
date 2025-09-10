@@ -173,7 +173,6 @@ async function toggleProgress(courseId, lessonId, complete) {
             throw new Error(data?.message || 'Ошибка сервера');
         }
 
-        // Обновляем кнопку прогресса - используем новый формат
         const progressContainer = document.getElementById('progress-' + lessonId);
         if (complete) {
             progressContainer.innerHTML = `
@@ -200,6 +199,8 @@ async function toggleProgress(courseId, lessonId, complete) {
         
         document.getElementById('course-progress-text').textContent = 
             data.completedCount + ' из ' + data.totalLessons + ' уроков завершено';
+        
+        document.querySelector('.progress-percent').textContent = data.percent + '%';
         
         const progressBar = document.getElementById('course-progress-bar');
         progressBar.style.width = data.percent + '%';

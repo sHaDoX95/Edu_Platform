@@ -13,7 +13,6 @@ body {
     padding: 20px;
 }
 
-/* Навигация */
 nav {
     background: #343a40;
     color: white;
@@ -31,7 +30,6 @@ nav a:hover {
     text-decoration: underline;
 }
 
-/* Формы */
 form label {
     display: block;
     margin-bottom: 15px;
@@ -62,7 +60,6 @@ button:hover {
     background-color: #0056b3;
 }
 
-/* Стили для главной страницы курсов */
 .hero-section {
     text-align: center;
     margin-bottom: 40px;
@@ -239,7 +236,6 @@ button:hover {
     100% { opacity: 1; }
 }
 
-/* Стили для уроков */
 .lesson-item {
     margin-bottom: 8px;
     padding: 10px 12px;
@@ -286,7 +282,6 @@ button:hover {
     transition: width 0.8s ease-in-out;
 }
 
-/* Списки курсов */
 ul.course-list {
     list-style-type: none;
     padding: 0;
@@ -318,7 +313,6 @@ ul.course-list li small {
     color: #555;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .courses-grid {
         grid-template-columns: 1fr;
@@ -342,7 +336,6 @@ ul.course-list li small {
     }
 }
 
-/* Индикатор загрузки поиска */
 .search-loading {
     position: absolute;
     right: 50px;
@@ -361,7 +354,6 @@ ul.course-list li small {
     100% { transform: translateY(-50%) rotate(360deg); }
 }
 
-/* НОВЫЕ СТИЛИ ДЛЯ СТРАНИЦЫ КУРСА (show.php) */
 .course-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;

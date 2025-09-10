@@ -283,7 +283,6 @@
     </div>
 
     <script>
-        // Анимация прогресс-баров
         document.addEventListener('DOMContentLoaded', function() {
             const progressBars = document.querySelectorAll('.mini-progress-bar');
             progressBars.forEach(bar => {

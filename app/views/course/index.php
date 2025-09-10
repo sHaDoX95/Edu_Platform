@@ -110,7 +110,6 @@ function pluralize($number, $one, $two, $five) {
                         const card = document.createElement('div');
                         card.className = 'course-card';
                         
-                        // Функция для склонения на JavaScript
                         function pluralizeJs(number, one, two, five) {
                             const n = Math.abs(number) % 100;
                             const n1 = n % 10;
