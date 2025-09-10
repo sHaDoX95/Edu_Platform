@@ -6,7 +6,8 @@ class CourseController {
     public function index() {
         Auth::requireLogin();
 
-        $courses = Course::all();
+        $courses = Course::allWithLessonsCount();
+
         require_once __DIR__ . '/../views/course/index.php';
     }
 
@@ -46,6 +47,11 @@ class CourseController {
     public function search() {
         $query = $_GET['q'] ?? '';
         $results = Course::searchByTitle($query);
+
+        foreach ($results as $k => $course) {
+            $results[$k]['lessons_count'] = Lesson::countByCourse($course['id']);
+        }
+
         header('Content-Type: application/json');
         echo json_encode($results);
         exit;

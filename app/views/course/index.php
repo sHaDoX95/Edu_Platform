@@ -1,11 +1,22 @@
-<?php $user = Auth::user(); ?>
+<?php 
+$user = Auth::user();
+
+function pluralize($number, $one, $two, $five) {
+    $n = abs($number) % 100;
+    $n1 = $n % 10;
+    if ($n > 10 && $n < 20) return $five;
+    if ($n1 > 1 && $n1 < 5) return $two;
+    if ($n1 == 1) return $one;
+    return $five;
+}
+?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/style.css">
-    <title>Курсы</title>
+    <title>Доступные курсы</title>
 </head>
 <body>
     <nav>
@@ -19,44 +30,130 @@
             <a href="/auth/logout">🚪 Выйти</a>
         </p>
     </nav>
+    
     <div class="container">
-        <h2>Доступные курсы</h2>
+        <div class="hero-section">
+            <h1 class="hero-title">🎓 Образовательная платформа</h1>
+            <p class="hero-subtitle">Откройте для себя новые знания и развивайте свои навыки</p>
+            
+            <div class="search-container">
+                <input type="text" id="search" class="search-input" placeholder="Поиск курсов...">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
 
-        <input type="text" id="search" placeholder="🔍 Найти курс..." style="width: 100%; padding: 8px; margin-bottom: 15px;">
-
-        <ul class="course-list" id="course-list">
-            <?php foreach ($courses as $course): ?>
-                <li>
-                    <a href="/course/show?id=<?= $course['id'] ?>">
-                        <?= htmlspecialchars($course['title']) ?>
-                    </a>
-                    <small><?= htmlspecialchars($course['description']) ?></small>
-                </li>
-            <?php endforeach; ?>
-        </ul>
+        <div class="courses-grid" id="courses-grid">
+            <?php if (empty($courses)): ?>
+                <div class="empty-state">
+                    <div>📚</div>
+                    <h3>Курсы не найдены</h3>
+                    <p>На данный момент нет доступных курсов</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($courses as $course): ?>
+                    <div class="course-card">
+                        <?php if ($user['role'] === 'teacher' && $course['teacher_id'] == $user['id']): ?>
+                            <span class="course-badge">Ваш курс</span>
+                        <?php endif; ?>
+                        
+                        <h3 class="course-title">
+                            <a href="/course/show?id=<?= $course['id'] ?>">
+                                <?= htmlspecialchars($course['title']) ?>
+                            </a>
+                        </h3>
+                        
+                        <p class="course-description">
+                            <?= htmlspecialchars($course['description']) ?>
+                        </p>
+                        
+                        <div class="course-meta">
+                            <span style="color: #666; font-size: 0.9em;">
+                                📝 <?= $course['lessons_count'] ?> <?= pluralize($course['lessons_count'], 'урок', 'урока', 'уроков') ?>
+                            </span>
+                            <a href="/course/show?id=<?= $course['id'] ?>" class="course-action">
+                                Начать обучение →
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </div>
 
     <script>
     document.getElementById('search').addEventListener('input', function () {
         const query = this.value;
-
+        const grid = document.getElementById('courses-grid');
+        
+        if (query.length < 1) {
+            showAllCourses();
+            return;
+        }
+        
+        grid.innerHTML = '<div class="loading pulse">🔍 Поиск курсов...</div>';
+        
         fetch('/course/search?q=' + encodeURIComponent(query))
             .then(response => response.json())
             .then(data => {
-                const list = document.getElementById('course-list');
-                list.innerHTML = '';
+                grid.innerHTML = '';
+                
                 if (data.length === 0) {
-                    list.innerHTML = '<li>❌ Ничего не найдено</li>';
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <div>🔍</div>
+                            <h3>Ничего не найдено</h3>
+                            <p>Попробуйте изменить поисковый запрос</p>
+                        </div>
+                    `;
                 } else {
                     data.forEach(course => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<a href="/course/show?id=${course.id}">${course.title}</a>
-                                        <small>${course.description}</small>`;
-                        list.appendChild(li);
+                        const card = document.createElement('div');
+                        card.className = 'course-card';
+                        
+                        // Функция для склонения на JavaScript
+                        function pluralizeJs(number, one, two, five) {
+                            const n = Math.abs(number) % 100;
+                            const n1 = n % 10;
+                            if (n > 10 && n < 20) return five;
+                            if (n1 > 1 && n1 < 5) return two;
+                            if (n1 == 1) return one;
+                            return five;
+                        }
+                        
+                        card.innerHTML = `
+                            <h3 class="course-title">
+                                <a href="/course/show?id=${course.id}">${course.title}</a>
+                            </h3>
+                            <p class="course-description">${course.description}</p>
+                            <div class="course-meta">
+                                <span style="color: #666; font-size: 0.9em;">
+                                    📝 ${course.lessons_count || 0} ${pluralizeJs(course.lessons_count || 0, 'урок', 'урока', 'уроков')}
+                                </span>
+                                <a href="/course/show?id=${course.id}" class="course-action">
+                                    Начать обучение →
+                                </a>
+                            </div>
+                        `;
+                        grid.appendChild(card);
                     });
                 }
+            })
+            .catch(error => {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div>⚠️</div>
+                        <h3>Ошибка поиска</h3>
+                        <p>Попробуйте позже</p>
+                    </div>
+                `;
             });
     });
+    
+    function showAllCourses() {
+        if (document.getElementById('search').value === '') {
+            window.location.reload();
+        }
+    }
     </script>
 </body>
 </html>

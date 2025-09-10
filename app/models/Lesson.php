@@ -53,4 +53,11 @@ class Lesson {
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public static function countByCourse($courseId) {
+        $db = Database::connect();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM lessons WHERE course_id = ?");
+        $stmt->execute([$courseId]);
+        return (int)$stmt->fetchColumn();
+    }
 }

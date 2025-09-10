@@ -94,15 +94,20 @@ class Course {
             SELECT 
                 u.id AS user_id,
                 u.name AS user_name,
-                COUNT(DISTINCT l.id) AS total_lessons,
-                COUNT(DISTINCT lp.id) AS completed_lessons,
-                COUNT(DISTINCT lp.id) FILTER (WHERE lp.test_passed = TRUE) AS passed_tests
+                (SELECT COUNT(*) FROM lessons WHERE course_id = :course_id) AS total_lessons,
+                COUNT(lp.id) AS completed_lessons,
+                COUNT(lp.id) FILTER (WHERE lp.test_passed = TRUE) AS passed_tests
             FROM users u
-            JOIN lesson_progress lp ON lp.user_id = u.id
-            JOIN lessons l ON l.id = lp.lesson_id
-            WHERE l.course_id = :course_id
+            LEFT JOIN lesson_progress lp 
+                ON lp.user_id = u.id
+                AND lp.lesson_id IN (SELECT id FROM lessons WHERE course_id = :course_id)
+            WHERE u.id IN (
+                SELECT DISTINCT user_id FROM lesson_progress lp2
+                JOIN lessons l2 ON lp2.lesson_id = l2.id
+                WHERE l2.course_id = :course_id
+            )
             GROUP BY u.id, u.name
-            ORDER BY u.name;
+            ORDER BY u.name
         ";
 
         $stmt = $db->prepare($sql);
@@ -115,5 +120,13 @@ class Course {
         $stmt = $pdo->prepare("SELECT id, title, description FROM courses WHERE title ILIKE :query");
         $stmt->execute(['query' => '%' . $query . '%']);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function allWithLessonsCount() {
+        $courses = self::all();
+        foreach ($courses as $k => $course) {
+            $courses[$k]['lessons_count'] = Lesson::countByCourse($course['id']);
+        }
+        return $courses;
     }
 }
