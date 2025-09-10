@@ -73,10 +73,16 @@ class Course {
 
     public static function delete($id) {
         $db = Database::connect();
-        
+
+        $stmt = $db->prepare("
+            DELETE FROM lesson_progress
+            WHERE lesson_id IN (SELECT id FROM lessons WHERE course_id = ?)
+        ");
+        $stmt->execute([$id]);
+
         $stmt = $db->prepare("DELETE FROM lessons WHERE course_id = ?");
         $stmt->execute([$id]);
-        
+
         $stmt = $db->prepare("DELETE FROM courses WHERE id = ?");
         return $stmt->execute([$id]);
     }
@@ -103,6 +109,7 @@ class Course {
         $stmt->execute(['course_id' => $courseId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     public static function searchByTitle($query) {
         $pdo = Database::connect();
         $stmt = $pdo->prepare("SELECT id, title, description FROM courses WHERE title ILIKE :query");

@@ -36,8 +36,8 @@ class Test {
 
     public static function existsForLesson($lessonId) {
         $pdo = Database::connect();
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE lesson_id = ?");
-        $stmt->execute([$lessonId]);
-        return $stmt->fetchColumn() > 0;
+        $stmt = $pdo->prepare("SELECT 1 FROM questions WHERE lesson_id = :lesson_id LIMIT 1");
+        $stmt->execute(['lesson_id' => $lessonId]);
+        return (bool)$stmt->fetchColumn();
     }
 }
