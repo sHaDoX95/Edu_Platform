@@ -7,7 +7,7 @@ $user = Auth::user();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/style.css?v=1">
+    <link rel="stylesheet" href="/css/style.css?v=<?= time() ?>">
     <title>Создание курса</title>
 </head>
 <body>
@@ -20,22 +20,56 @@ $user = Auth::user();
         </p>
     </nav>
 
-    <div class="container">
-        <h2>➕ Создать новый курс</h2>
+    <div class="form-container">
+        <h1 class="form-title">➕ Создать новый курс</h1>
+        <p class="form-subtitle">Заполните информацию о новом курсе</p>
 
         <form action="/teacher/store" method="post">
-            <label>
-                📖 Название курса:
-                <input type="text" name="title" required>
-            </label>
+            <div class="form-group">
+                <label for="title" class="form-label">📖 Название курса</label>
+                <input type="text" id="title" name="title" class="form-input" 
+                       placeholder="Введите название курса" required
+                       oninput="updateCharCounter(this, 'title-counter', 100)">
+                <div id="title-counter" class="char-counter">0/100</div>
+            </div>
 
-            <label>
-                📝 Описание курса:
-                <textarea name="description" rows="5" required style="width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;"></textarea>
-            </label>
+            <div class="form-group">
+                <label for="description" class="form-label">📝 Описание курса</label>
+                <textarea id="description" name="description" class="form-input form-textarea" 
+                          placeholder="Опишите содержание курса..." required
+                          oninput="updateCharCounter(this, 'desc-counter', 500)"></textarea>
+                <div id="desc-counter" class="char-counter">0/500</div>
+            </div>
 
-            <button type="submit">✅ Создать курс</button>
+            <div class="form-actions">
+                <button type="submit" class="form-btn">✅ Создать курс</button>
+                <a href="/teacher" class="form-btn secondary-btn">↩️ Назад в кабинет</a>
+            </div>
         </form>
     </div>
+
+    <script>
+    function updateCharCounter(input, counterId, maxLength) {
+        const counter = document.getElementById(counterId);
+        const length = input.value.length;
+        counter.textContent = `${length}/${maxLength}`;
+        
+        if (length > maxLength * 0.9) {
+            counter.className = 'char-counter danger';
+        } else if (length > maxLength * 0.7) {
+            counter.className = 'char-counter warning';
+        } else {
+            counter.className = 'char-counter';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInput = document.getElementById('title');
+        const descInput = document.getElementById('description');
+        
+        if (titleInput) updateCharCounter(titleInput, 'title-counter', 100);
+        if (descInput) updateCharCounter(descInput, 'desc-counter', 500);
+    });
+    </script>
 </body>
 </html>

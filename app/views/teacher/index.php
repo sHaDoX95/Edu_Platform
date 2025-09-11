@@ -7,7 +7,7 @@ $user = Auth::user();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/style.css?v=1">
+    <link rel="stylesheet" href="/css/style.css?v=<?= time() ?>">
     <title>Личный кабинет преподавателя</title>
 </head>
 <body>
@@ -21,30 +21,70 @@ $user = Auth::user();
     </nav>
 
     <div class="container">
-        <h2>👨‍🏫 Личный кабинет преподавателя</h2>
-        <p>Добро пожаловать, <strong><?= htmlspecialchars($user['name']) ?></strong>!</p>
+        <div class="teacher-header">
+            <div class="teacher-avatar">👨‍🏫</div>
+            <h1 class="teacher-title">Кабинет преподавателя</h1>
+            <p class="teacher-subtitle">Добро пожаловать, <strong><?= htmlspecialchars($user['name']) ?></strong>!</p>
+        </div>
 
-        <h3>📘 Мои курсы:</h3>
+        <div class="teacher-actions-index">
+            <a href="/teacher/create" class="teacher-action-btn">
+                ➕ Создать новый курс
+            </a>
+            <a href="/course" class="teacher-action-btn" style="background: #6c757d;">
+                📚 Все курсы платформы
+            </a>
+        </div>
 
-        <?php if (count($courses) === 0): ?>
-            <p>У вас пока нет созданных курсов.</p>
-        <?php else: ?>
-            <ul class="course-list">
-                <?php foreach ($courses as $course): ?>
-                    <li>
-                        <a href="/course/show?id=<?= $course['id'] ?>">
-                            <?= htmlspecialchars($course['title']) ?>
-                        </a>
-                        <a href="/teacher/students?id=<?= $course['id'] ?>">👥 Студенты</a>
-                        <small><?= htmlspecialchars($course['description']) ?></small>
-                        <br>
-                        <a href="/course/show?id=<?= $course['id'] ?>" class="btn">Просмотреть</a> |
-                        <a href="/teacher/edit?id=<?= $course['id'] ?>">✏ Редактировать</a> |
-                        <a href="/teacher/delete?id=<?= $course['id'] ?>" onclick="return confirm('Удалить курс?')">🗑 Удалить</a>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
+        <div class="courses-section">
+            <h2 class="section-title">📘 Мои курсы</h2>
+
+            <?php if (count($courses) === 0): ?>
+                <div class="empty-courses">
+                    <div class="empty-courses-icon">📚</div>
+                    <h3>Курсы не найдены</h3>
+                    <p>У вас пока нет созданных курсов</p>
+                    <a href="/teacher/create" class="teacher-action-btn">Создать первый курс</a>
+                </div>
+            <?php else: ?>
+                <div class="teacher-courses-grid">
+                    <?php foreach ($courses as $course): ?>
+                        <div class="teacher-course-card">
+                            <h3 class="course-title-teacher"><?= htmlspecialchars($course['title']) ?></h3>
+                            <p class="course-description-teacher"><?= htmlspecialchars($course['description']) ?></p>
+                            
+                            <div class="course-stats">
+                                <div class="stat-item">
+                                    <span>👥</span>
+                                    <span class="stat-number">0</span> студентов
+                                </div>
+                                <div class="stat-item">
+                                    <span>📝</span>
+                                    <span class="stat-number">0</span> уроков
+                                </div>
+                            </div>
+                            
+                            <div class="course-actions">
+                                <a href="/course/show?id=<?= $course['id'] ?>" class="course-btn btn-view">
+                                    👁️ Просмотреть
+                                </a>
+                                <a href="/teacher/edit?id=<?= $course['id'] ?>" class="course-btn btn-edit">
+                                    ✏️ Редактировать
+                                </a>
+                                <a href="/teacher/students?id=<?= $course['id'] ?>" class="course-btn btn-students">
+                                    👥 Студенты
+                                </a>
+                                <a href="/teacher/delete?id=<?= $course['id'] ?>" 
+                                   class="course-btn btn-delete"
+                                   onclick="return confirm('Удалить курс «<?= addslashes($course['title']) ?>»?')">
+                                    🗑️ Удалить
+                                </a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </body>
 </html>

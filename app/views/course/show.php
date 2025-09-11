@@ -38,7 +38,7 @@ $percent = $totalLessons > 0 ? round(($completedCount / $totalLessons) * 100) : 
 </nav>
 
 <div class="container">
-    <a href="/course" class="back-link">← Назад к курсам</a>
+    <a href="/course" class="back-link">← К курсам</a>
     
     <div class="course-header">
         <h1 class="course-title"><?= htmlspecialchars($course['title']) ?></h1>
