@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../models/Test.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../models/Progress.php';
+require_once __DIR__ . '/../models/Lesson.php';
 
 class TestController {
     public function show() {
@@ -13,7 +14,15 @@ class TestController {
             return;
         }
 
+        $lesson = Lesson::find($lessonId);
+        if (!$lesson) {
+            echo "Урок не найден";
+            return;
+        }
+
+        $courseId = $lesson['course_id'];
         $test = Test::getByLesson($lessonId);
+
         require __DIR__ . '/../views/test/show.php';
     }
 
@@ -27,6 +36,14 @@ class TestController {
             echo "Урок не найден";
             return;
         }
+
+        $lesson = Lesson::find($lessonId);
+        if (!$lesson) {
+            echo "Урок не найден";
+            return;
+        }
+
+        $courseId = $lesson['course_id'];
 
         $test = Test::getByLesson($lessonId);
         $correct = 0;

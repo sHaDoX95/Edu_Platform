@@ -313,29 +313,6 @@ ul.course-list li small {
     color: #555;
 }
 
-@media (max-width: 768px) {
-    .courses-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .hero-title {
-        font-size: 2em;
-    }
-    
-    .course-card {
-        padding: 20px;
-    }
-    
-    .container {
-        width: 95%;
-        padding: 15px;
-    }
-    
-    .search-container {
-        max-width: 100%;
-    }
-}
-
 .search-loading {
     position: absolute;
     right: 50px;
@@ -650,50 +627,6 @@ ul.course-list li small {
 
 .status-passed { color: #28a745; }
 .status-failed { color: #dc3545; }
-
-@media (max-width: 768px) {
-    .course-header {
-        padding: 20px;
-    }
-    
-    .course-title {
-        font-size: 1.8em;
-    }
-    
-    .lesson-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .lesson-status {
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .lesson-actions {
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-    }
-    
-    .progress-container, .test-container {
-        min-width: 100%;
-        max-width: 100%;
-    }
-
-    .test-container {
-        flex-shrink: 0;
-        box-sizing: border-box;
-    }
-
-    .progress-container .btn,
-    .test-container .btn {
-        width: 100%;
-        box-sizing: border-box;
-        justify-content: center;
-    }
-}
 
 .auth-container {
     max-width: 450px;
@@ -1076,37 +1009,6 @@ ul.course-list li small {
     animation: slideIn 0.6s ease-out;
 }
 
-@media (max-width: 768px) {
-    .user-name {
-        font-size: 1.5em;
-    }
-    
-    .course-card-profile {
-        padding: 20px;
-    }
-    
-    .course-progress-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .lesson-details {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .lesson-item-profile {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .lesson-status {
-        margin-right: 0;
-    }
-}
-
 .icon-emoji {
     font-size: 1.2em;
     margin-right: 5px;
@@ -1311,43 +1213,6 @@ ul.course-list li small {
     animation: fadeInUp 0.8s ease-out;
 }
 
-@media (max-width: 768px) {
-    .result-container {
-        margin: 30px 20px;
-        padding: 30px 25px;
-    }
-    
-    .test-title {
-        font-size: 1.8em;
-    }
-    
-    .question-block {
-        padding: 20px;
-    }
-    
-    .option-label {
-        padding: 12px 15px;
-    }
-    
-    .result-title {
-        font-size: 1.6em;
-    }
-    
-    .result-score {
-        font-size: 2.5em;
-    }
-    
-    .result-actions {
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-    }
-    
-    .result-btn {
-        justify-content: center;
-    }
-}
-
 .option-label input[type="radio"]:checked + .option-text {
     color: #667eea;
     font-weight: 600;
@@ -1529,36 +1394,6 @@ ul.course-list li small {
 
 .form-container {
     animation: slideIn 0.6s ease-out;
-}
-
-@media (max-width: 768px) {
-    .form-container {
-        margin: 20px;
-        padding: 30px 25px;
-    }
-    
-    .form-title {
-        font-size: 1.8em;
-    }
-    
-    .form-input {
-        padding: 12px 16px;
-    }
-    
-    .form-btn {
-        padding: 14px 30px;
-        justify-content: center;
-    }
-    
-    .form-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .secondary-btn {
-        margin-left: 0;
-    }
 }
 
 .form-input:invalid:not(:focus):not(:placeholder-shown) {
@@ -1766,25 +1601,6 @@ ul.course-list li small {
     animation: fadeInUp 0.6s ease-out;
 }
 
-@media (max-width: 768px) {
-    .teacher-actions-index {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .courses-section {
-        padding: 30px 20px;
-    }
-    
-    .course-actions {
-        flex-direction: column;
-    }
-    
-    .course-btn {
-        justify-content: center;
-    }
-}
-
 .course-stats {
     display: flex;
     gap: 20px;
@@ -1807,4 +1623,38 @@ ul.course-list li small {
 .stat-number {
     font-weight: 600;
     color: #2c3e50;
+}
+
+.lesson-status.status-done {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #28a745;
+}
+
+.lesson-status.status-partial {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffc107;
+}
+
+.lesson-status.status-not-done {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #dc3545;
+}
+
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px;
+    box-sizing: border-box;
 }

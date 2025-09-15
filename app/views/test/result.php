@@ -9,7 +9,13 @@
 <body>
     <nav>
         <p>
-            <a href="/course">← Назад к курсам</a>
+            Вы вошли как <strong><?= htmlspecialchars($user['name']) ?></strong> |
+            <?php if ($user['role'] === 'teacher'): ?>
+                <a href="/teacher">👨‍🏫 Личный кабинет</a> |
+            <?php else: ?>
+                <a href="/user">👤 Личный кабинет</a> |
+            <?php endif; ?>
+            <a href="/auth/logout">🚪 Выйти</a>
         </p>
     </nav>
 

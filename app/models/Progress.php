@@ -58,8 +58,8 @@ class Progress {
             $pdo->beginTransaction();
 
             $stmt = $pdo->prepare("
-                INSERT INTO lesson_progress (user_id, lesson_id, test_score, test_passed)
-                VALUES (:user_id, :lesson_id, :score, :passed)
+                INSERT INTO lesson_progress (user_id, lesson_id, test_score, test_passed, completed_at)
+                VALUES (:user_id, :lesson_id, :score, :passed, CURRENT_TIMESTAMP)
                 ON CONFLICT (user_id, lesson_id) DO NOTHING
             ");
             $stmt->execute([
@@ -69,16 +69,24 @@ class Progress {
                 ':passed' => $passed,
             ]);
 
+            $stmt = $pdo->prepare("SELECT test_passed FROM lesson_progress WHERE user_id = :uid AND lesson_id = :lid");
+            $stmt->execute([':uid' => $userId, ':lid' => $lessonId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $finalPassed = $row && ($row['test_passed'] === 't' || $row['test_passed'] === true || $row['test_passed'] === 1)
+                ? 't'
+                : $passed;
+
             $stmt = $pdo->prepare("
                 UPDATE lesson_progress
                 SET test_score = :score,
-                    test_passed = :passed,
+                    test_passed = :final_passed,
                     completed_at = COALESCE(completed_at, CURRENT_TIMESTAMP)
                 WHERE user_id = :user_id AND lesson_id = :lesson_id
             ");
             $stmt->execute([
                 ':score' => $score,
-                ':passed' => $passed,
+                ':final_passed' => $finalPassed,
                 ':user_id' => $userId,
                 ':lesson_id' => $lessonId
             ]);

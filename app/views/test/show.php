@@ -9,7 +9,7 @@
 <body>
     <nav>
         <p>
-            <a href="/course">← Назад к курсу</a>
+            <a href="/course/show?id=<?= htmlspecialchars($courseId) ?>">← Назад к курсу</a>
         </p>
     </nav>
 
