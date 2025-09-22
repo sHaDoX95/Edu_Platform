@@ -12,6 +12,8 @@
             Вы вошли как <strong><?= htmlspecialchars($user['name']) ?></strong> |
             <?php if ($user['role'] === 'teacher'): ?>
                 <a href="/teacher">👨‍🏫 Личный кабинет</a> |
+            <?php elseif ($user['role'] === 'admin'): ?>
+                <a href="/admin">🛠️ Админ-панель</a> |
             <?php else: ?>
                 <a href="/user">👤 Личный кабинет</a> |
             <?php endif; ?>

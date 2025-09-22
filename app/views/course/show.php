@@ -30,6 +30,8 @@ $percent = $totalLessons > 0 ? round(($completedCount / $totalLessons) * 100) : 
         <?php if ($user['role'] === 'teacher'): ?>
             <a href="/teacher">👨‍🏫 Личный кабинет</a> |
             <a href="/lesson/create?course_id=<?= $course['id'] ?>">➕ Добавить урок</a> |
+        <?php elseif ($user['role'] === 'admin'): ?>
+            <a href="/admin">🛠️ Админ-панель</a> |
         <?php else: ?>
             <a href="/user">👤 Личный кабинет</a> |
         <?php endif; ?>

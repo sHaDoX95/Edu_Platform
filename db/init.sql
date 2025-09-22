@@ -276,3 +276,23 @@ INSERT INTO options (question_id, text, is_correct) VALUES
 (24, 'new PDO("mysql:...")', FALSE),
 (24, 'new PDO("pgsql:...")', TRUE),
 (24, 'connect_pgsql()', FALSE);
+
+CREATE TABLE IF NOT EXISTS teacher_student (
+    id SERIAL PRIMARY KEY,
+    teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (teacher_id, student_id)
+);
+
+CREATE TABLE IF NOT EXISTS support_tickets (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    subject TEXT,
+    message TEXT NOT NULL,
+    status TEXT DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO users (name, email, password, role)
+VALUES ('admin1', 'admin1@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9ptzKB15ELG9KNSwcrce86K', 'admin');

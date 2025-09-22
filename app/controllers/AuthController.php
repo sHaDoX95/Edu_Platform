@@ -12,6 +12,8 @@ class AuthController {
                 $_SESSION['user_id'] = $user['id'];
                 if ($user['role'] === 'teacher') {
                     header("Location: /teacher");
+                } elseif ($user['role'] === 'admin') {
+                    header("Location: /admin");
                 } else {
                     header("Location: /user");
                 }
@@ -54,6 +56,8 @@ class AuthController {
 
             if ($user['role'] === 'teacher') {
                 header("Location: /teacher");
+            } elseif ($user['role'] === 'admin') {
+                header("Location: /admin");
             } else {
                 header("Location: /user");
             }
