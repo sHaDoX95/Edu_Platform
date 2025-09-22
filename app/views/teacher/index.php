@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../core/helpers.php';
+
 $user = Auth::user();
 ?>
 
@@ -56,11 +58,13 @@ $user = Auth::user();
                             <div class="course-stats">
                                 <div class="stat-item">
                                     <span>👥</span>
-                                    <span class="stat-number">0</span> студентов
+                                    <span class="stat-number"><?= $course['students_count'] ?? 0 ?></span>
+                                    <?= pluralize($course['students_count'] ?? 0, 'студент', 'студента', 'студентов') ?>
                                 </div>
                                 <div class="stat-item">
                                     <span>📝</span>
-                                    <span class="stat-number">0</span> уроков
+                                    <span class="stat-number"><?= $course['lessons_count'] ?? 0 ?></span>
+                                    <?= pluralize($course['lessons_count'] ?? 0, 'урок', 'урока', 'уроков') ?>
                                 </div>
                             </div>
                             

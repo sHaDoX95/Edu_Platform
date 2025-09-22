@@ -195,7 +195,6 @@
                 <p>Студенты еще не начали проходить этот курс</p>
             </div>
         <?php else: ?>
-            <!-- Статистика -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label">Всего студентов</div>
@@ -226,7 +225,6 @@
                 </div>
             </div>
 
-            <!-- Таблица студентов -->
             <div style="overflow-x: auto;">
                 <table class="students-table">
                     <thead>

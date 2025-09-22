@@ -14,8 +14,7 @@ class TeacherController {
             return;
         }
 
-        $teacherId = $user['id'];
-        $courses = Course::findByTeacher($teacherId);
+        $courses = Course::getByTeacherWithStats($user['id']);
 
         require_once __DIR__ . '/../views/teacher/index.php';
     }

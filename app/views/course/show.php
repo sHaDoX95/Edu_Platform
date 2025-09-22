@@ -110,7 +110,7 @@ $percent = $totalLessons > 0 ? round(($completedCount / $totalLessons) * 100) : 
                             </div>
 
                             <?php if ($hasTest): ?>
-                                <div class="test-container">
+                                <div class="btn-test">
                                     <a href="/test/show?lesson_id=<?= $lessonId ?>" class="btn btn-primary">
                                         🧪 Пройти тест
                                         <?php if ($testPassed): ?>

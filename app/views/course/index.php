@@ -1,14 +1,7 @@
 <?php 
-$user = Auth::user();
+require_once __DIR__ . '/../../core/helpers.php';
 
-function pluralize($number, $one, $two, $five) {
-    $n = abs($number) % 100;
-    $n1 = $n % 10;
-    if ($n > 10 && $n < 20) return $five;
-    if ($n1 > 1 && $n1 < 5) return $two;
-    if ($n1 == 1) return $one;
-    return $five;
-}
+$user = Auth::user();
 ?>
 <!DOCTYPE html>
 <html lang="ru">

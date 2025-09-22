@@ -51,12 +51,7 @@ class Course {
         ]);
     }
 
-    public static function findByTeacher($teacherId) {
-        $pdo = Database::connect();
-        $stmt = $pdo->prepare("SELECT * FROM courses WHERE teacher_id = :tid");
-        $stmt->execute(['tid' => $teacherId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+
 
     public static function update($id, $title, $description) {
         $db = Database::connect();
@@ -128,5 +123,26 @@ class Course {
             $courses[$k]['lessons_count'] = Lesson::countByCourse($course['id']);
         }
         return $courses;
+    }
+
+    public static function getByTeacherWithStats($teacherId) {
+        $db = Database::connect();
+        
+        $query = "
+            SELECT 
+                c.*,
+                COUNT(DISTINCT l.id) as lessons_count,
+                COUNT(DISTINCT lp.user_id) as students_count
+            FROM courses c
+            LEFT JOIN lessons l ON l.course_id = c.id
+            LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id
+            WHERE c.teacher_id = ?
+            GROUP BY c.id
+            ORDER BY c.id DESC
+        ";
+        
+        $stmt = $db->prepare($query);
+        $stmt->execute([$teacherId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
