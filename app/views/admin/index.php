@@ -19,30 +19,30 @@ $user = Auth::user();
 </nav>
 
 <div class="container">
-    <h1>Админ-панель</h1>
+    <h1 class="hero-title">Админ-панель</h1>
 
-    <div style="display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:20px; margin-top:20px;">
-        <div class="course-card">
-            <h3>Пользователи</h3>
-            <p style="font-size: 1.6em; font-weight:700;"><?= $usersCount ?? 0 ?></p>
+    <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <div class="admin-stat-title">Пользователи</div>
+            <div class="admin-stat-number"><?= $usersCount ?? 0 ?></div>
             <a href="/admin/users" class="course-action">Управление пользователями</a>
         </div>
 
-        <div class="course-card">
-            <h3>Курсы</h3>
-            <p style="font-size: 1.6em; font-weight:700;"><?= $coursesCount ?? 0 ?></p>
+        <div class="admin-stat-card">
+            <div class="admin-stat-title">Курсы</div>
+            <div class="admin-stat-number"><?= $coursesCount ?? 0 ?></div>
             <a href="/course" class="course-action">Посмотреть курсы</a>
         </div>
 
-        <div class="course-card">
-            <h3>Уроки</h3>
-            <p style="font-size: 1.6em; font-weight:700;"><?= $lessonsCount ?? 0 ?></p>
+        <div class="admin-stat-card">
+            <div class="admin-stat-title">Уроки</div>
+            <div class="admin-stat-number"><?= $lessonsCount ?? 0 ?></div>
             <a href="/course" class="course-action">Управление</a>
         </div>
 
-        <div class="course-card">
-            <h3>Тикеты поддержки</h3>
-            <p style="font-size: 1.6em; font-weight:700;"><?= $ticketsCount ?? 0 ?></p>
+        <div class="admin-stat-card">
+            <div class="admin-stat-title">Тикеты поддержки</div>
+            <div class="admin-stat-number"><?= $ticketsCount ?? 0 ?></div>
             <a href="/admin/support" class="course-action">Открыть поддержку</a>
         </div>
     </div>

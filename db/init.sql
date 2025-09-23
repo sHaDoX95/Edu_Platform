@@ -296,3 +296,32 @@ CREATE TABLE IF NOT EXISTS support_tickets (
 
 INSERT INTO users (name, email, password, role)
 VALUES ('admin1', 'admin1@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9ptzKB15ELG9KNSwcrce86K', 'admin');
+
+ALTER TABLE users ADD COLUMN blocked BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Таблица для настроек системы
+CREATE TABLE IF NOT EXISTS system_settings (
+    id SERIAL PRIMARY KEY,
+    key TEXT UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    description TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Добавим базовые настройки
+INSERT INTO system_settings (key, value, description) VALUES 
+('site_name', 'Образовательная платформа', 'Название сайта'),
+('site_description', 'Платформа для онлайн-обучения', 'Описание сайта'),
+('registration_enabled', 'true', 'Разрешить регистрацию новых пользователей'),
+('max_courses_per_teacher', '10', 'Максимум курсов на преподавателя');
+
+CREATE TABLE IF NOT EXISTS system_logs (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    message TEXT
+);
+
+-- Создадим индекс для производительности
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_lesson ON lesson_progress(user_id, lesson_id);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status);
+CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at);

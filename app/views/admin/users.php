@@ -19,51 +19,86 @@ $user = Auth::user();
 </nav>
 
 <div class="container">
-    <h1>Пользователи</h1>
+    <h1 class="hero-title">Пользователи</h1>
 
     <?php if (!empty($_SESSION['flash_error'])): ?>
-        <div class="auth-error"><?= htmlspecialchars($_SESSION['flash_error']); unset($_SESSION['flash_error']); ?></div>
+        <div class="flash-message flash-error"><?= htmlspecialchars($_SESSION['flash_error']); unset($_SESSION['flash_error']); ?></div>
     <?php endif; ?>
 
-    <section style="margin-bottom:30px;">
-        <h3>Создать пользователя</h3>
-        <form method="POST" action="/admin/users/store" style="display:flex; gap:10px; flex-wrap:wrap;">
-            <input name="name" placeholder="Имя" required>
-            <input name="email" placeholder="Email" type="email" required>
-            <input name="password" placeholder="Пароль" type="password" required>
-            <select name="role">
-                <option value="student">Студент</option>
-                <option value="teacher">Преподаватель</option>
-                <option value="admin">Админ</option>
-            </select>
-            <button class="course-action" type="submit">Добавить</button>
+    <section class="admin-form">
+        <h3 class="admin-form-title">Создать пользователя</h3>
+        <form method="POST" action="/admin/storeUser" class="admin-form-grid">
+            <div>
+                <input type="text" name="name" placeholder="Имя" class="form-input" required>
+            </div>
+            <div>
+                <input type="email" name="email" placeholder="Email" class="form-input" required>
+            </div>
+            <div>
+                <input type="password" name="password" placeholder="Пароль" class="form-input" required>
+            </div>
+            <div>
+                <select name="role" class="form-input" required>
+                    <option value="student">Студент</option>
+                    <option value="teacher">Преподаватель</option>
+                    <option value="admin">Админ</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="course-action">Добавить пользователя</button>
+            </div>
         </form>
     </section>
 
     <section>
-        <h3>Список</h3>
-        <table style="width:100%; border-collapse:collapse;">
+        <h3 class="admin-form-title">Список пользователей</h3>
+        <table class="admin-table">
             <thead>
-                <tr style="background:#f0f0f0;">
-                    <th style="padding:10px;">ID</th>
+                <tr>
+                    <th>ID</th>
                     <th>Имя</th>
                     <th>Email</th>
                     <th>Роль</th>
+                    <th>Статус</th>
                     <th>Действия</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($users as $u): ?>
                     <tr>
-                        <td style="padding:10px;"><?= htmlspecialchars($u['id']) ?></td>
+                        <td><?= htmlspecialchars($u['id']) ?></td>
                         <td><?= htmlspecialchars($u['name']) ?></td>
                         <td><?= htmlspecialchars($u['email']) ?></td>
                         <td><?= htmlspecialchars($u['role']) ?></td>
                         <td>
-                            <form style="display:inline" method="GET" action="/admin/users/delete" onsubmit="return confirm('Удалить пользователя?');">
-                                <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                <button class="course-action" style="background:#dc3545; padding:6px 10px; border-radius:8px; color:#fff;">Удалить</button>
-                            </form>
+                            <span class="status-badge <?= $u['blocked'] ? 'status-blocked' : 'status-active' ?>">
+                                <?= $u['blocked'] ? '🚫 Заблокирован' : '✅ Активен' ?>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="admin-actions">
+                                <form method="POST" action="/admin/updateUser" class="table-form">
+                                    <input type="hidden" name="id" value="<?= $u['id'] ?>">
+                                    
+                                    <select name="role" class="form-input">
+                                        <option value="student" <?= $u['role']==='student'?'selected':'' ?>>Студент</option>
+                                        <option value="teacher" <?= $u['role']==='teacher'?'selected':'' ?>>Преподаватель</option>
+                                        <option value="admin" <?= $u['role']==='admin'?'selected':'' ?>>Админ</option>
+                                    </select>
+                                    
+                                    <select name="blocked" class="form-input">
+                                        <option value="0" <?= !$u['blocked']?'selected':'' ?>>Активен</option>
+                                        <option value="1" <?= $u['blocked']?'selected':'' ?>>Заблокирован</option>
+                                    </select>
+                                    
+                                    <button type="submit" class="admin-btn btn-save btn-small">💾 Сохранить</button>
+                                </form>
+
+                                <form method="POST" action="/admin/deleteUser" onsubmit="return confirm('Удалить пользователя?');">
+                                    <input type="hidden" name="id" value="<?= $u['id'] ?>">
+                                    <button type="submit" class="admin-btn btn-delete btn-small">❌ Удалить</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -71,28 +106,28 @@ $user = Auth::user();
         </table>
     </section>
 
-    <section style="margin-top:30px;">
-        <h3>Прикрепить студента к преподавателю</h3>
-        <form method="POST" action="/admin/attach-student" style="display:flex; gap:10px; align-items:center;">
-            <select name="student_id" required>
-                <option value="">— выберите студента (не прикреплен) —</option>
+    <section class="admin-form">
+        <h3 class="admin-form-title">Прикрепить студента к преподавателю</h3>
+        <form method="POST" action="/admin/attachStudent" class="admin-form-inline">
+            <select name="student_id" class="form-input" required>
+                <option value="">— выберите студента —</option>
                 <?php foreach ($unassignedStudents as $s): ?>
                     <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?> (<?= htmlspecialchars($s['email']) ?>)</option>
                 <?php endforeach; ?>
             </select>
 
-            <select name="teacher_id" required>
+            <select name="teacher_id" class="form-input" required>
                 <option value="">— выберите преподавателя —</option>
                 <?php foreach ($teachers as $t): ?>
                     <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['name']) ?></option>
                 <?php endforeach; ?>
             </select>
 
-            <button class="course-action" type="submit">Прикрепить</button>
+            <button type="submit" class="course-action">Прикрепить</button>
         </form>
     </section>
 
-    <section style="margin-top:30px;">
+    <section style="margin-top: 30px;">
         <a href="/admin" class="course-action">← Вернуться в админку</a>
     </section>
 </div>

@@ -3,8 +3,8 @@ require_once __DIR__ . '/../core/Database.php';
 
 class User {
     public static function all() {
-        $db = Database::connect();
-        $stmt = $db->query("SELECT id, name, email, role FROM users ORDER BY id DESC");
+        $db = Database::getConnection();
+        $stmt = $db->query("SELECT id, name, email, role, blocked FROM users ORDER BY id");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -59,7 +59,6 @@ class User {
         return $stmt->execute(['id' => $id]);
     }
 
-    // Привязать студента к преподавателю
     public static function assignStudentToTeacher($studentId, $teacherId) {
         $db = Database::connect();
         $stmt = $db->prepare("INSERT INTO teacher_student (teacher_id, student_id) VALUES (:t, :s) ON CONFLICT (teacher_id, student_id) DO NOTHING");
@@ -100,6 +99,41 @@ class User {
               AND u.id NOT IN (SELECT student_id FROM teacher_student)
             ORDER BY u.name
         ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function updateRoleAndStatus($id, $role, $blocked) {
+        $db = Database::connect();
+        $stmt = $db->prepare("UPDATE users SET role = ?, blocked = ? WHERE id = ?");
+        $stmt->execute([$role, $blocked, $id]);
+    }
+
+    public static function filter($role = null, $status = null, $q = '') {
+        $db = Database::connect();
+        $sql = "SELECT id, name, email, role, blocked FROM users WHERE 1=1";
+        $params = [];
+
+        if ($role) {
+            $sql .= " AND role = :role";
+            $params[':role'] = $role;
+        }
+
+        if ($status === 'active') {
+            $sql .= " AND blocked = false";
+        } elseif ($status === 'blocked') {
+            $sql .= " AND blocked = true";
+        }
+
+        if ($q !== '') {
+            $sql .= " AND (LOWER(name) LIKE :q OR LOWER(email) LIKE :q)";
+            $params[':q'] = '%' . strtolower($q) . '%';
+        }
+
+        $sql .= " ORDER BY id";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
