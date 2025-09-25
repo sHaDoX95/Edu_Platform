@@ -52,6 +52,21 @@ $user = Auth::user();
 
     <section>
         <h3 class="admin-form-title">Список пользователей</h3>
+        <form method="get" action="/admin/users" class="search-form">
+            <input type="text" name="q" value="<?= htmlspecialchars($_GET['q'] ?? '') ?>" placeholder="Поиск по имени или email">
+            <select name="role" style="border-radius: 4px;">
+                <option value="">Все роли</option>
+                <option value="admin" <?= ($_GET['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Администраторы</option>
+                <option value="teacher" <?= ($_GET['role'] ?? '') === 'teacher' ? 'selected' : '' ?>>Преподаватели</option>
+                <option value="student" <?= ($_GET['role'] ?? '') === 'student' ? 'selected' : '' ?>>Студенты</option>
+            </select>
+            <select name="status" style="border-radius: 4px;">
+                <option value="">Все</option>
+                <option value="active" <?= ($_GET['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активные</option>
+                <option value="blocked" <?= ($_GET['status'] ?? '') === 'blocked' ? 'selected' : '' ?>>Заблокированные</option>
+            </select>
+            <button type="submit">Поиск</button>
+        </form>
         <table class="admin-table">
             <thead>
                 <tr>
@@ -72,7 +87,7 @@ $user = Auth::user();
                         <td><?= htmlspecialchars($u['role']) ?></td>
                         <td>
                             <span class="status-badge <?= $u['blocked'] ? 'status-blocked' : 'status-active' ?>">
-                                <?= $u['blocked'] ? '🚫 Заблокирован' : '✅ Активен' ?>
+                                <?= $u['blocked'] ? 'Заблокирован' : 'Активен' ?>
                             </span>
                         </td>
                         <td>
@@ -92,9 +107,10 @@ $user = Auth::user();
                                     </select>
                                     
                                     <button type="submit" class="admin-btn btn-save btn-small">💾 Сохранить</button>
+                                    <a href="/admin/editUser?id=<?= $u['id'] ?>" class="admin-btn btn-edit btn-small">✏️ Редактировать</a>
                                 </form>
 
-                                <form method="POST" action="/admin/deleteUser" onsubmit="return confirm('Удалить пользователя?');">
+                                <form method="POST" action="/admin/deleteUser"  class="table-form" onsubmit="return confirm('Удалить пользователя?');">
                                     <input type="hidden" name="id" value="<?= $u['id'] ?>">
                                     <button type="submit" class="admin-btn btn-delete btn-small">❌ Удалить</button>
                                 </form>
@@ -105,6 +121,17 @@ $user = Auth::user();
             </tbody>
         </table>
     </section>
+
+    <?php if ($pages > 1): ?>
+    <div class="pagination">
+        <?php for ($i = 1; $i <= $pages; $i++): ?>
+            <a href="?page=<?= $i ?>&q=<?= urlencode($q) ?>&role=<?= urlencode($role) ?>&status=<?= urlencode($status) ?>"
+            class="<?= $i == $currentPage ? 'active' : '' ?>">
+                <?= $i ?>
+            </a>
+        <?php endfor; ?>
+    </div>
+    <?php endif; ?>
 
     <section class="admin-form">
         <h3 class="admin-form-title">Прикрепить студента к преподавателю</h3>
@@ -131,5 +158,44 @@ $user = Auth::user();
         <a href="/admin" class="course-action">← Вернуться в админку</a>
     </section>
 </div>
+
+<script>
+document.querySelectorAll('.table-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            const row = form.closest('tr');
+
+            row.querySelector('td:nth-child(4)').textContent = result.role;
+
+            const statusCell = row.querySelector('td:nth-child(5) .status-badge');
+            if (result.blocked === "1" || result.blocked === 1) {
+                statusCell.textContent = "Заблокирован";
+                statusCell.classList.remove("status-active");
+                statusCell.classList.add("status-blocked");
+            } else {
+                statusCell.textContent = "Активен";
+                statusCell.classList.remove("status-blocked");
+                statusCell.classList.add("status-active");
+            }
+
+            row.style.backgroundColor = "#d4edda";
+            setTimeout(() => row.style.backgroundColor = "", 800);
+        } else {
+            alert("Ошибка: " + result.error);
+        }
+    });
+});
+</script>
 </body>
 </html>

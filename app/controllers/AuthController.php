@@ -8,19 +8,26 @@ class AuthController {
             $password = $_POST['password'];
 
             $user = User::findByEmail($email);
-            if ($user && password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['id'];
-                if ($user['role'] === 'teacher') {
-                    header("Location: /teacher");
-                } elseif ($user['role'] === 'admin') {
-                    header("Location: /admin");
-                } else {
-                    header("Location: /user");
+            if ($user) {
+                if (!empty($user['blocked']) && $user['blocked'] == true) {
+                    $error = "Ваш аккаунт заблокирован. Обратитесь к администратору.";
+                    require_once __DIR__ . '/../views/auth/login.php';
+                    return;
                 }
-                exit;
-            } else {
-                $error = "Неверный логин или пароль";
+
+                if (password_verify($password, $user['password'])) {
+                    $_SESSION['user_id'] = $user['id'];
+                    if ($user['role'] === 'teacher') {
+                        header("Location: /teacher");
+                    } elseif ($user['role'] === 'admin') {
+                        header("Location: /admin");
+                    } else {
+                        header("Location: /user");
+                    }
+                    exit;
+                }
             }
+            $error = "Неверный логин или пароль";
         }
 
         require_once __DIR__ . '/../views/auth/login.php';

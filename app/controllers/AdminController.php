@@ -27,8 +27,19 @@ class AdminController {
         $role = $_GET['role'] ?? null;
         $status = $_GET['status'] ?? null;
         $q = trim($_GET['q'] ?? '');
+        $page = max(1, (int)($_GET['page'] ?? 1));
 
-        $users = User::filter($role, $status, $q);
+        $result = User::filter($role, $status, $q, $page);
+
+        $limit = 5;
+        $page = $_GET['page'] ?? 1;
+        $offset = ($page - 1) * $limit;
+
+        $total = User::countAll($q, $role, $status);
+        $pages = ceil($total / $limit);
+
+        $users = User::getAll($q, $role, $status, $limit, $offset);
+
         $teachers = User::getTeachers();
         $unassignedStudents = User::getUnassignedStudents();
 
@@ -51,30 +62,56 @@ class AdminController {
         }
 
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        User::create($name, $email, $hash, $role);
+
+        $created = User::create($name, $email, $hash, $role);
+
+        if (!$created) {
+            $_SESSION['flash_error'] = "Пользователь с таким email уже существует";
+        } else {
+            $_SESSION['flash_success'] = "Пользователь успешно создан";
+        }
 
         header("Location: /admin/users");
         exit;
     }
 
     public function updateUser() {
-        Auth::requireLogin();
-        Auth::requireRole('admin');
-
         $id = $_POST['id'] ?? null;
         $role = $_POST['role'] ?? null;
-        $blocked = isset($_POST['blocked']) ? (int)$_POST['blocked'] : 0;
+        $blocked = $_POST['blocked'] ?? null;
 
-        if (!$id || !$role) {
-            $_SESSION['flash_error'] = "Невозможно обновить пользователя";
+        if (!$id || $role === null || $blocked === null) {
+            if ($this->isAjax()) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Некорректные данные']);
+                exit;
+            }
+            $_SESSION['flash_error'] = "Некорректные данные";
             header("Location: /admin/users");
             exit;
         }
 
         User::updateRoleAndStatus($id, $role, $blocked);
 
+        if ($this->isAjax()) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'id' => $id,
+                'role' => $role,
+                'blocked' => $blocked
+            ]);
+            exit;
+        }
+
         header("Location: /admin/users");
-        exit;
+    }
+
+    private function isAjax() {
+        return (
+            !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+        );
     }
 
     public function deleteUser() {
@@ -159,22 +196,31 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/dashboard.php';
     }
 
-    public function coursesManagement() {
+    public function courses() {
         Auth::requireRole('admin');
         
         $db = Database::connect();
         
-        $courses = $db->query("
+        $limit = 5;
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $offset = ($page - 1) * $limit;
+
+        $total = (int)$db->query("SELECT COUNT(*) FROM courses")->fetchColumn();
+        $pages = ceil($total / $limit);
+
+        $courses = $db->prepare("
             SELECT c.*, u.name as teacher_name, 
-                   COUNT(l.id) as lessons_count,
-                   COUNT(DISTINCT lp.user_id) as students_count
+                (SELECT COUNT(*) FROM lessons l WHERE l.course_id = c.id) as lessons_count,
+                (SELECT COUNT(DISTINCT lp.user_id) FROM lesson_progress lp
+                    JOIN lessons l ON l.id = lp.lesson_id
+                    WHERE l.course_id = c.id) as students_count
             FROM courses c
             LEFT JOIN users u ON u.id = c.teacher_id
-            LEFT JOIN lessons l ON l.course_id = c.id
-            LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id
-            GROUP BY c.id, u.name
             ORDER BY c.created_at DESC
-        ")->fetchAll(PDO::FETCH_ASSOC);
+            LIMIT ? OFFSET ?
+        ");
+        $courses->execute([$limit, $offset]);
+        $courses = $courses->fetchAll(PDO::FETCH_ASSOC);
         
         $teachers = $db->query("SELECT id, name FROM users WHERE role = 'teacher'")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -203,21 +249,44 @@ class AdminController {
 
     public function updateCourse() {
         Auth::requireRole('admin');
-        
+
         $id = $_POST['id'] ?? null;
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $teacherId = $_POST['teacher_id'] ?? null;
-        
-        if ($id && $title && $description) {
-            Course::update($id, $title, $description, $teacherId);
-            $this->logAction("Обновлен курс ID: $id");
-            header("Location: /admin/courses");
-            exit;
+
+        header('Content-Type: application/json');
+
+        if (!$id || !$title || !$description) {
+            echo json_encode(['success' => false, 'error' => 'Недостаточно данных']);
+            return;
         }
-        
-        header("Location: /admin/courses?error=update_failed");
-        exit;
+
+        Course::update($id, $title, $description, $teacherId);
+
+        $this->logAction("Обновлен курс ID: $id, преподаватель: $teacherId");
+
+        echo json_encode(['success' => true]);
+    }
+
+    public function updateCourseTeacher() {
+        Auth::requireRole('admin');
+
+        $id = $_POST['id'] ?? null;
+        $teacherId = $_POST['teacher_id'] ?? null;
+
+        header('Content-Type: application/json');
+
+        if (!$id) {
+            echo json_encode(['success' => false, 'error' => 'Недостаточно данных']);
+            return;
+        }
+
+        Course::updateTeacher($id, $teacherId);
+
+        $this->logAction("Обновлен курс ID: $id, преподаватель: $teacherId");
+
+        echo json_encode(['success' => true]);
     }
 
     public function deleteCourse() {
@@ -470,5 +539,57 @@ class AdminController {
             $details,
             $_SERVER['REMOTE_ADDR'] ?? 'unknown'
         ]);
+    }
+
+    public function editUser() {
+        Auth::requireLogin();
+        Auth::requireRole('admin');
+
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header("Location: /admin/users");
+            exit;
+        }
+
+        $editUser = User::find($id);
+        if (!$editUser) {
+            $_SESSION['flash_error'] = "Пользователь не найден";
+            header("Location: /admin/users");
+            exit;
+        }
+
+        require __DIR__ . '/../views/admin/editUser.php';
+    }
+
+    public function updateUserData() {
+        Auth::requireLogin();
+        Auth::requireRole('admin');
+
+        $id = $_POST['id'] ?? null;
+        $name = trim($_POST['name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        if (!$id || !$name || !$email) {
+            $_SESSION['flash_error'] = "Заполните все поля";
+            header("Location: /admin/editUser?id=" . urlencode($id));
+            exit;
+        }
+
+        $hash = $password ? password_hash($password, PASSWORD_DEFAULT) : null;
+
+        try {
+            User::updateData($id, $name, $email, $hash);
+            $_SESSION['flash_success'] = "Данные обновлены";
+            header("Location: /admin/users");
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23505') {
+                $_SESSION['flash_error'] = "Пользователь с таким email уже существует";
+                header("Location: /admin/editUser?id=" . urlencode($id));
+            } else {
+                throw $e;
+            }
+        }
+        exit;
     }
 }

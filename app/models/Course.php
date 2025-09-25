@@ -47,17 +47,33 @@ class Course {
         $stmt->execute([
             'title' => $title,
             'description' => $description,
-            'tid' => $teacherId
+            'tid' => $teacherId !== '' ? $teacherId : null
         ]);
     }
 
-
-
-    public static function update($id, $title, $description) {
+    public static function update($id, $title, $description, $teacherId = null) {
         $db = Database::connect();
-        $stmt = $db->prepare("UPDATE courses SET title = ?, description = ? WHERE id = ?");
-        return $stmt->execute([$title, $description, $id]);
+        $query = "UPDATE courses SET title = ?, description = ?";
+        $params = [$title, $description];
+
+        if ($teacherId !== null) {
+            $query .= ", teacher_id = ?";
+            $params[] = $teacherId;
+        }
+
+        $query .= " WHERE id = ?";
+        $params[] = $id;
+
+        $stmt = $db->prepare($query);
+        return $stmt->execute($params);
     }
+
+    public static function updateTeacher($id, $teacherId = null) {
+        $db = Database::connect();
+        $stmt = $db->prepare("UPDATE courses SET teacher_id = ? WHERE id = ?");
+        return $stmt->execute([$teacherId !== '' ? $teacherId : null, $id]);
+    }
+
 
     public static function find($id) {
         $db = Database::connect();

@@ -24,14 +24,16 @@ class User {
 
     public static function create($name, $email, $passwordHash, $role = 'student') {
         $db = Database::connect();
-        $stmt = $db->prepare("INSERT INTO users (name, email, password, role) VALUES (:name, :email, :password, :role) RETURNING id");
-        $stmt->execute([
-            ':name' => $name,
-            ':email' => $email,
-            ':password' => $passwordHash,
-            ':role' => $role
-        ]);
-        return $stmt->fetchColumn();
+        try {
+            $stmt = $db->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$name, $email, $passwordHash, $role]);
+            return true;
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23505') {
+                return false;
+            }
+            throw $e;
+        }
     }
 
     public static function update($id, $name, $email, $role = null, $passwordHash = null) {
@@ -108,32 +110,118 @@ class User {
         $stmt->execute([$role, $blocked, $id]);
     }
 
-    public static function filter($role = null, $status = null, $q = '') {
+    public static function filter($role = null, $status = null, $q = '', $page = 1, $perPage = 20) {
         $db = Database::connect();
-        $sql = "SELECT id, name, email, role, blocked FROM users WHERE 1=1";
+
+        $where = [];
         $params = [];
 
         if ($role) {
-            $sql .= " AND role = :role";
-            $params[':role'] = $role;
+            $where[] = "role = ?";
+            $params[] = $role;
         }
 
-        if ($status === 'active') {
-            $sql .= " AND blocked = false";
-        } elseif ($status === 'blocked') {
-            $sql .= " AND blocked = true";
+        if ($status !== null) {
+            $where[] = "blocked = ?";
+            $params[] = ($status === 'blocked') ? 1 : 0;
         }
 
-        if ($q !== '') {
-            $sql .= " AND (LOWER(name) LIKE :q OR LOWER(email) LIKE :q)";
-            $params[':q'] = '%' . strtolower($q) . '%';
+        if ($q) {
+            $where[] = "(name ILIKE ? OR email ILIKE ?)";
+            $params[] = "%$q%";
+            $params[] = "%$q%";
         }
 
-        $sql .= " ORDER BY id";
+        $sqlWhere = $where ? "WHERE " . implode(" AND ", $where) : "";
+
+        $offset = ($page - 1) * $perPage;
+
+        $stmt = $db->prepare("
+            SELECT * FROM users
+            $sqlWhere
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+        ");
+
+        $params[] = $perPage;
+        $params[] = $offset;
+
+        $stmt->execute($params);
+
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $countStmt = $db->prepare("SELECT COUNT(*) FROM users $sqlWhere");
+        $countStmt->execute(array_slice($params, 0, count($params) - 2));
+        $total = $countStmt->fetchColumn();
+
+        return [
+            'data' => $users,
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+            'pages' => ceil($total / $perPage),
+        ];
+    }
+
+    public static function updateData($id, $name, $email, $passwordHash = null) {
+        $db = Database::connect();
+
+        if ($passwordHash) {
+            $stmt = $db->prepare("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?");
+            return $stmt->execute([$name, $email, $passwordHash, $id]);
+        } else {
+            $stmt = $db->prepare("UPDATE users SET name = ?, email = ? WHERE id = ?");
+            return $stmt->execute([$name, $email, $id]);
+        }
+    }
+
+    public static function countAll($q = '', $role = '', $status = '') {
+        $db = Database::connect();
+        $sql = "SELECT COUNT(*) FROM users WHERE 1=1";
+        $params = [];
+
+        if ($q) {
+            $sql .= " AND (name ILIKE ? OR email ILIKE ?)";
+            $params[] = "%$q%";
+            $params[] = "%$q%";
+        }
+        if ($role) {
+            $sql .= " AND role = ?";
+            $params[] = $role;
+        }
+        if ($status) {
+            $sql .= $status === 'active' ? " AND blocked = 0" : " AND blocked = 1";
+        }
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
+        return $stmt->fetchColumn();
+    }
 
+    public static function getAll($q = '', $role = '', $status = '', $limit = 10, $offset = 0) {
+        $db = Database::connect();
+        $sql = "SELECT * FROM users WHERE 1=1";
+        $params = [];
+
+        if ($q) {
+            $sql .= " AND (name ILIKE ? OR email ILIKE ?)";
+            $params[] = "%$q%";
+            $params[] = "%$q%";
+        }
+        if ($role) {
+            $sql .= " AND role = ?";
+            $params[] = $role;
+        }
+        if ($status) {
+            $sql .= $status === 'active' ? " AND blocked = 0" : " AND blocked = 1";
+        }
+
+        $sql .= " ORDER BY id DESC LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

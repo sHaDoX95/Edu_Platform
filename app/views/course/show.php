@@ -89,7 +89,7 @@ $percent = $totalLessons > 0 ? round(($completedCount / $totalLessons) * 100) : 
                                        onclick="return confirm('Удалить урок?')">🗑️</a>
                                 </div>
                             <?php endif; ?>
-                            <div class="status-badge <?= $statusClass ?>"></div>
+                            <div class="status-badge-course <?= $statusClass ?>"></div>
                         </div>
                     </div>
 
@@ -190,13 +190,13 @@ async function toggleProgress(courseId, lessonId, complete) {
             `;
         }
         
-        const statusBadge = document.querySelector(`[data-lesson="${lessonId}"] .status-badge`);
+        const statusBadge = document.querySelector(`[data-lesson="${lessonId}"] .status-badge-course`);
         if (data.topicDone) {
-            statusBadge.className = 'status-badge status-complete';
+            statusBadge.className = 'status-badge-course status-complete';
         } else if (data.partial) {
-            statusBadge.className = 'status-badge status-partial';
+            statusBadge.className = 'status-badge-course status-partial';
         } else {
-            statusBadge.className = 'status-badge status-pending';
+            statusBadge.className = 'status-badge-course status-pending';
         }
         
         document.getElementById('course-progress-text').textContent = 

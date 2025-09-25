@@ -31,19 +31,25 @@ $user = Auth::user();
         <div class="admin-stat-card">
             <div class="admin-stat-title">Курсы</div>
             <div class="admin-stat-number"><?= $coursesCount ?? 0 ?></div>
-            <a href="/course" class="course-action">Посмотреть курсы</a>
+            <a href="/admin/courses" class="course-action">Посмотреть курсы</a>
         </div>
 
         <div class="admin-stat-card">
             <div class="admin-stat-title">Уроки</div>
             <div class="admin-stat-number"><?= $lessonsCount ?? 0 ?></div>
-            <a href="/course" class="course-action">Управление</a>
+            <a href="/admin/lessons" class="course-action">Управление</a>
         </div>
 
         <div class="admin-stat-card">
             <div class="admin-stat-title">Тикеты поддержки</div>
             <div class="admin-stat-number"><?= $ticketsCount ?? 0 ?></div>
             <a href="/admin/support" class="course-action">Открыть поддержку</a>
+        </div>
+
+        <div class="admin-stat-card">
+            <div class="admin-stat-title">Системные логи</div>
+            <div class="admin-stat-number"><?= $logsCount ?? 0 ?></div>
+            <a href="/admin/logs" class="course-action">Посмотреть</a>
         </div>
     </div>
 </div>

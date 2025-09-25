@@ -6,13 +6,21 @@ class Auth {
             $pdo = Database::connect();
             $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
             $stmt->execute(['id' => $_SESSION['user_id']]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user && !empty($user['blocked']) && $user['blocked'] == true) {
+                session_destroy();
+                return null;
+            }
+
+            return $user;
         }
         return null;
     }
 
     public static function check() {
-        return isset($_SESSION['user_id']);
+        $user = self::user();
+        return $user !== null;
     }
 
     public static function requireLogin() {

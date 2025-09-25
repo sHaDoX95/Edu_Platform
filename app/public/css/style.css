@@ -72,6 +72,7 @@ button:hover {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 10px;
+    text-align: center;
 }
 
 .hero-subtitle {
@@ -502,9 +503,13 @@ ul.course-list li small {
 }
 
 .status-badge {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+    display: inline-block;
+    min-width: 100px;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .status-complete { background: #28a745; }
@@ -1316,6 +1321,7 @@ ul.course-list li small {
     display: inline-flex;
     align-items: center;
     gap: 10px;
+    text-decoration: none;
 }
 
 .form-btn:hover {
@@ -1793,6 +1799,8 @@ html, body {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
 }
 
 .btn-save {
@@ -1820,8 +1828,8 @@ html, body {
     font-size: 0.85em;
 }
 
-.status-badge {
-    padding: 4px 12px;
+.status-badge-course {
+    padding: 8px 8px;
     border-radius: 20px;
     font-size: 0.85em;
     font-weight: 500;
@@ -1882,4 +1890,45 @@ html, body {
         flex-direction: column;
         align-items: stretch;
     }
+}
+
+.search-form {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.search-form input, 
+.search-form select {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+.pagination {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 5px;
+}
+
+.pagination a {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.pagination a.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+@keyframes blink {
+  0% { background-color: #d4edda; }
+  50% { background-color: #ffffff; }
+  100% { background-color: #d4edda; }
+}
+
+.blink {
+  animation: blink 0.8s ease-in-out;
 }

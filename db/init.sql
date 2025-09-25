@@ -299,7 +299,6 @@ VALUES ('admin1', 'admin1@example.com', '$2y$10$LHl7NIdjSYcsWGwJXknnkOu7.GLJCK9p
 
 ALTER TABLE users ADD COLUMN blocked BOOLEAN NOT NULL DEFAULT FALSE;
 
--- Таблица для настроек системы
 CREATE TABLE IF NOT EXISTS system_settings (
     id SERIAL PRIMARY KEY,
     key TEXT UNIQUE NOT NULL,
@@ -308,7 +307,6 @@ CREATE TABLE IF NOT EXISTS system_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Добавим базовые настройки
 INSERT INTO system_settings (key, value, description) VALUES 
 ('site_name', 'Образовательная платформа', 'Название сайта'),
 ('site_description', 'Платформа для онлайн-обучения', 'Описание сайта'),
@@ -321,7 +319,13 @@ CREATE TABLE IF NOT EXISTS system_logs (
     message TEXT
 );
 
--- Создадим индекс для производительности
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_lesson ON lesson_progress(user_id, lesson_id);
 CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status);
 CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at);
+
+ALTER TABLE courses ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE system_logs
+ADD COLUMN user_id INTEGER REFERENCES users(id),
+ADD COLUMN action TEXT,
+ADD COLUMN details TEXT,
+ADD COLUMN ip_address TEXT;
