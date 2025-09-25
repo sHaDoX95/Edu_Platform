@@ -46,6 +46,23 @@ $user = Auth::user();
 
     <section>
         <h3 class="admin-form-title">Список курсов</h3>
+
+        <form method="get" action="/admin/courses" class="search-form" style="margin-bottom:12px;">
+            <input type="text" name="q" value="<?= htmlspecialchars($q ?? '') ?>" placeholder="Поиск по названию курса">
+            <select name="teacher_id" style="border-radius: 4px;">
+                <option value="">Все преподаватели</option>
+                <?php foreach ($teachers as $t): ?>
+                    <option value="<?= $t['id'] ?>" <?= (string)($teacherId ?? '') === (string)$t['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($t['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit">Поиск</button>
+            <?php if (!empty($q) || !empty($teacherId)): ?>
+                <a href="/admin/courses" style="margin-left:8px;">Сбросить</a>
+            <?php endif; ?>
+        </form>
+
         <table class="admin-table">
             <thead>
                 <tr>
@@ -59,14 +76,13 @@ $user = Auth::user();
             </thead>
             <tbody>
                 <?php foreach ($courses as $c): ?>
-                    <tr>
+                    <tr id="course-<?= $c['id'] ?>">
                         <td><?= $c['id'] ?></td>
                         <td><?= htmlspecialchars($c['title']) ?></td>
                         <td>
-                            <span class="teacher-name"></span>
                             <form method="POST" action="/admin/updateCourseTeacher" class="course-teacher-form">
                                 <input type="hidden" name="id" value="<?= $c['id'] ?>">
-                                <select name="teacher_id" class="form-input">
+                                <select name="teacher_id" class="form-input course-teacher-select">
                                     <option value="">— выбрать преподавателя —</option>
                                     <?php foreach ($teachers as $t): ?>
                                         <option value="<?= $t['id'] ?>" <?= $c['teacher_id']==$t['id']?'selected':'' ?>>
@@ -74,7 +90,6 @@ $user = Auth::user();
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <button type="submit" class="admin-btn btn-save btn-small">💾</button>
                             </form>
                         </td>
                         <td><?= $c['lessons_count'] ?></td>
@@ -82,7 +97,7 @@ $user = Auth::user();
                         <td>
                             <form method="GET" action="/admin/deleteCourse" onsubmit="return confirm('Удалить курс?');">
                                 <input type="hidden" name="id" value="<?= $c['id'] ?>">
-                                <button type="submit" class="admin-btn btn-delete btn-small">❌</button>
+                                <button type="submit" class="admin-btn btn-delete btn-small">❌ Удалить</button>
                             </form>
                         </td>
                     </tr>
@@ -93,7 +108,8 @@ $user = Auth::user();
         <?php if ($pages > 1): ?>
         <div class="pagination">
             <?php for ($i = 1; $i <= $pages; $i++): ?>
-                <a href="?page=<?= $i ?>" class="<?= $i == $currentPage ? 'active' : '' ?>"><?= $i ?></a>
+                <a href="?page=<?= $i ?>&q=<?= urlencode($q ?? '') ?>&teacher_id=<?= urlencode($teacherId ?? '') ?>"
+                class="<?= $i == $page ? 'active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
         </div>
         <?php endif; ?>
@@ -105,32 +121,125 @@ $user = Auth::user();
 </div>
 
 <script>
-document.querySelectorAll('.course-teacher-form').forEach(form => {
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
+document.querySelectorAll('.course-teacher-select').forEach(select => {
+    select.addEventListener('change', function() {
+        const form = this.closest('form');
+        const row = form.closest('tr');
+        submitForm(form, this, row);
+    });
+});
 
-        const response = await fetch(form.action, {
+async function submitForm(form, selectElement, row) {
+    const formData = new FormData(form);
+    const courseId = formData.get('id');
+    
+    row.classList.add('blink');
+    selectElement.disabled = true;
+    
+    selectElement.style.border = '2px solid #667eea';
+    selectElement.style.backgroundColor = '#f8f9ff';
+    
+    try {
+        const response = await fetch('/admin/updateCourseTeacher', {
             method: 'POST',
             body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
         });
 
         const result = await response.json();
 
         if (result.success) {
-            const row = form.closest('tr');
-
-            const select = form.querySelector('select[name="teacher_id"]');
-            const teacherName = select.options[select.selectedIndex].text;
+            row.classList.remove('blink');
+            row.classList.add('save-success');
+            selectElement.style.border = '2px solid #28a745';
+            selectElement.style.backgroundColor = '#f0fff4';
             
-            row.classList.add('blink');
-            row.addEventListener('animationend', () => row.classList.remove('blink'), { once: true });
+            setTimeout(() => {
+                row.classList.remove('save-success');
+                selectElement.style.border = '';
+                selectElement.style.backgroundColor = '';
+                selectElement.disabled = false;
+            }, 2000);
+            
         } else {
-            alert("Ошибка: " + result.error);
+            row.classList.remove('blink');
+            row.classList.add('save-error');
+            selectElement.style.border = '2px solid #dc3545';
+            selectElement.style.backgroundColor = '#fff5f5';
+            
+            setTimeout(() => {
+                row.classList.remove('save-error');
+                selectElement.style.border = '';
+                selectElement.style.backgroundColor = '';
+                selectElement.disabled = false;
+            }, 3000);
+            
+            alert('Ошибка: ' + result.error);
         }
-    });
-});
+    } catch (error) {
+        console.error('Ошибка:', error);
+        
+        row.classList.remove('blink');
+        row.classList.add('save-error');
+        selectElement.style.border = '2px solid #dc3545';
+        selectElement.style.backgroundColor = '#fff5f5';
+        
+        setTimeout(() => {
+            row.classList.remove('save-error');
+            selectElement.style.border = '';
+            selectElement.style.backgroundColor = '';
+            selectElement.disabled = false;
+        }, 3000);
+        
+        alert('Произошла ошибка при сохранении');
+    }
+}
+
+const style = document.createElement('style');
+style.textContent = `
+    .blink {
+        animation: blinkAnim 0.6s ease-in-out;
+        background-color: #fffbf0 !important;
+    }
+    
+    .save-success {
+        animation: successAnim 2s ease-in-out;
+    }
+    
+    .save-error {
+        animation: errorAnim 3s ease-in-out;
+    }
+    
+    @keyframes blinkAnim {
+        0% { background-color: #fffbf0; }
+        50% { background-color: #fff8e1; }
+        100% { background-color: #fffbf0; }
+    }
+    
+    @keyframes successAnim {
+        0% { background-color: #d4edda; }
+        30% { background-color: #e8f5e8; }
+        100% { background-color: transparent; }
+    }
+    
+    @keyframes errorAnim {
+        0% { background-color: #f8d7da; }
+        30% { background-color: #ffe6e6; }
+        100% { background-color: transparent; }
+    }
+    
+    .course-teacher-select {
+        transition: all 0.3s ease;
+    }
+    
+    .course-teacher-select:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+`;
+document.head.appendChild(style);
 </script>
 </body>
 </html>

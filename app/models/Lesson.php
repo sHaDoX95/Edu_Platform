@@ -60,4 +60,25 @@ class Lesson {
         $stmt->execute([$courseId]);
         return (int)$stmt->fetchColumn();
     }
+
+    public static function paginate($page, $perPage) {
+        $offset = ($page - 1) * $perPage;
+        $db = Database::getConnection();
+        $stmt = $db->prepare("
+            SELECT l.*, c.title AS course_title
+            FROM lessons l
+            LEFT JOIN courses c ON l.course_id = c.id
+            ORDER BY l.id DESC
+            LIMIT :perPage OFFSET :offset
+        ");
+        $stmt->bindValue(':perPage', (int)$perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function count() {
+        $db = Database::getConnection();
+        return $db->query("SELECT COUNT(*) FROM lessons")->fetchColumn();
+    }
 }

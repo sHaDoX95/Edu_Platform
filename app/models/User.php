@@ -107,8 +107,13 @@ class User {
     public static function updateRoleAndStatus($id, $role, $blocked) {
         $db = Database::connect();
         $stmt = $db->prepare("UPDATE users SET role = ?, blocked = ? WHERE id = ?");
-        $stmt->execute([$role, $blocked, $id]);
+        $stmt->execute([
+            $role,
+            $blocked ? true : false, // строго boolean для PostgreSQL
+            $id
+        ]);
     }
+
 
     public static function filter($role = null, $status = null, $q = '', $page = 1, $perPage = 20) {
         $db = Database::connect();
@@ -123,7 +128,7 @@ class User {
 
         if ($status !== null) {
             $where[] = "blocked = ?";
-            $params[] = ($status === 'blocked') ? 1 : 0;
+            $params[] = ($status === 'blocked') ? true : false;
         }
 
         if ($q) {
@@ -190,7 +195,11 @@ class User {
             $params[] = $role;
         }
         if ($status) {
-            $sql .= $status === 'active' ? " AND blocked = 0" : " AND blocked = 1";
+            if ($status === 'active') {
+                $sql .= " AND blocked = false";
+            } else if ($status === 'blocked') {
+                $sql .= " AND blocked = true";
+            }
         }
 
         $stmt = $db->prepare($sql);
@@ -213,7 +222,11 @@ class User {
             $params[] = $role;
         }
         if ($status) {
-            $sql .= $status === 'active' ? " AND blocked = 0" : " AND blocked = 1";
+            if ($status === 'active') {
+                $sql .= " AND blocked = false";
+            } else if ($status === 'blocked') {
+                $sql .= " AND blocked = true";
+            }
         }
 
         $sql .= " ORDER BY id DESC LIMIT ? OFFSET ?";

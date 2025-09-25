@@ -24,16 +24,13 @@ class AdminController {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
-        $role = $_GET['role'] ?? null;
-        $status = $_GET['status'] ?? null;
+        $role = $_GET['role'] ?? '';
+        $status = $_GET['status'] ?? '';
         $q = trim($_GET['q'] ?? '');
-        $page = max(1, (int)($_GET['page'] ?? 1));
-
-        $result = User::filter($role, $status, $q, $page);
-
+        
         $limit = 5;
-        $page = $_GET['page'] ?? 1;
-        $offset = ($page - 1) * $limit;
+        $currentPage = max(1, (int)($_GET['page'] ?? 1));
+        $offset = ($currentPage - 1) * $limit;
 
         $total = User::countAll($q, $role, $status);
         $pages = ceil($total / $limit);
@@ -76,35 +73,45 @@ class AdminController {
     }
 
     public function updateUser() {
+        Auth::requireLogin();
+        Auth::requireRole('admin');
+
         $id = $_POST['id'] ?? null;
         $role = $_POST['role'] ?? null;
-        $blocked = $_POST['blocked'] ?? null;
+        $blocked = isset($_POST['blocked']) ? intval($_POST['blocked']) : null; // 0 или 1
 
-        if (!$id || $role === null || $blocked === null) {
-            if ($this->isAjax()) {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'error' => 'Некорректные данные']);
-                exit;
-            }
-            $_SESSION['flash_error'] = "Некорректные данные";
-            header("Location: /admin/users");
+        header('Content-Type: application/json'); // ставим JSON сразу
+
+        if (!$id || ($role === null && $blocked === null)) {
+            echo json_encode(['success' => false, 'error' => 'Некорректные данные']);
             exit;
         }
 
-        User::updateRoleAndStatus($id, $role, $blocked);
+        try {
+            $db = Database::connect();
 
-        if ($this->isAjax()) {
-            header('Content-Type: application/json');
+            if ($role !== null) {
+                $stmt = $db->prepare("UPDATE users SET role = ? WHERE id = ?");
+                $stmt->execute([$role, $id]);
+            }
+
+            if ($blocked !== null) {
+                $stmt = $db->prepare("UPDATE users SET blocked = ? WHERE id = ?");
+                $stmt->execute([$blocked, $id]);
+            }
+
             echo json_encode([
                 'success' => true,
                 'id' => $id,
-                'role' => $role,
-                'blocked' => $blocked
+                'role' => $role ?? '',
+                'blocked' => $blocked ?? ''
             ]);
             exit;
-        }
 
-        header("Location: /admin/users");
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
     }
 
     private function isAjax() {
@@ -200,15 +207,35 @@ class AdminController {
         Auth::requireRole('admin');
         
         $db = Database::connect();
-        
+
         $limit = 5;
         $page = max(1, (int)($_GET['page'] ?? 1));
         $offset = ($page - 1) * $limit;
 
-        $total = (int)$db->query("SELECT COUNT(*) FROM courses")->fetchColumn();
+        $q = trim($_GET['q'] ?? '');
+        $teacherId = $_GET['teacher_id'] ?? '';
+
+        $where = [];
+        $params = [];
+
+        if ($q !== '') {
+            $where[] = "c.title ILIKE ?";
+            $params[] = "%$q%";
+        }
+
+        if ($teacherId !== '') {
+            $where[] = "c.teacher_id = ?";
+            $params[] = $teacherId;
+        }
+
+        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $stmtTotal = $db->prepare("SELECT COUNT(*) FROM courses c $whereSql");
+        $stmtTotal->execute($params);
+        $total = (int)$stmtTotal->fetchColumn();
         $pages = ceil($total / $limit);
 
-        $courses = $db->prepare("
+        $sql = "
             SELECT c.*, u.name as teacher_name, 
                 (SELECT COUNT(*) FROM lessons l WHERE l.course_id = c.id) as lessons_count,
                 (SELECT COUNT(DISTINCT lp.user_id) FROM lesson_progress lp
@@ -216,12 +243,14 @@ class AdminController {
                     WHERE l.course_id = c.id) as students_count
             FROM courses c
             LEFT JOIN users u ON u.id = c.teacher_id
+            $whereSql
             ORDER BY c.created_at DESC
             LIMIT ? OFFSET ?
-        ");
-        $courses->execute([$limit, $offset]);
-        $courses = $courses->fetchAll(PDO::FETCH_ASSOC);
-        
+        ";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([...$params, $limit, $offset]);
+        $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         $teachers = $db->query("SELECT id, name FROM users WHERE role = 'teacher'")->fetchAll(PDO::FETCH_ASSOC);
 
         require_once __DIR__ . '/../views/admin/courses.php';
@@ -302,36 +331,165 @@ class AdminController {
         exit;
     }
 
-    public function lessonsManagement() {
+    public function lessons() {
         Auth::requireRole('admin');
-        
-        $courseId = $_GET['course_id'] ?? null;
+
         $db = Database::connect();
-        
-        if ($courseId) {
-            $lessons = $db->prepare("
-                SELECT l.*, c.title as course_title,
-                       (SELECT COUNT(*) FROM questions q WHERE q.lesson_id = l.id) as questions_count
-                FROM lessons l
-                JOIN courses c ON c.id = l.course_id
-                WHERE l.course_id = ?
-                ORDER BY l.id
-            ");
-            $lessons->execute([$courseId]);
-            $lessons = $lessons->fetchAll(PDO::FETCH_ASSOC);
-        } else {
-            $lessons = $db->query("
-                SELECT l.*, c.title as course_title,
-                       (SELECT COUNT(*) FROM questions q WHERE q.lesson_id = l.id) as questions_count
-                FROM lessons l
-                JOIN courses c ON c.id = l.course_id
-                ORDER BY l.course_id, l.id
-            ")->fetchAll(PDO::FETCH_ASSOC);
+
+        $q = trim($_GET['q'] ?? '');
+        $courseId = $_GET['course_id'] ?? '';
+
+        $limit = 10;
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $offset = ($page - 1) * $limit;
+
+        $whereParts = [];
+        $params = [];
+
+        if ($q !== '') {
+            $whereParts[] = "l.title ILIKE :q";
+            $params[':q'] = '%' . $q . '%';
         }
-        
+
+        if ($courseId !== '' && $courseId !== null) {
+            $whereParts[] = "l.course_id = :course_id";
+            $params[':course_id'] = (int)$courseId;
+        }
+
+        $whereSql = $whereParts ? ('WHERE ' . implode(' AND ', $whereParts)) : '';
+
+        $countSql = "SELECT COUNT(*) FROM lessons l $whereSql";
+        $countStmt = $db->prepare($countSql);
+        foreach ($params as $k => $v) {
+            if ($k === ':course_id') $countStmt->bindValue($k, $v, PDO::PARAM_INT);
+            else $countStmt->bindValue($k, $v, PDO::PARAM_STR);
+        }
+        $countStmt->execute();
+        $total = (int)$countStmt->fetchColumn();
+        $pages = max(1, (int)ceil($total / $limit));
+
+        $sql = "
+            SELECT l.*, c.title AS course_title
+            FROM lessons l
+            LEFT JOIN courses c ON c.id = l.course_id
+            $whereSql
+            ORDER BY l.id DESC
+            LIMIT :limit OFFSET :offset
+        ";
+        $stmt = $db->prepare($sql);
+        foreach ($params as $k => $v) {
+            if ($k === ':course_id') $stmt->bindValue($k, $v, PDO::PARAM_INT);
+            else $stmt->bindValue($k, $v, PDO::PARAM_STR);
+        }
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $lessons = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         $courses = $db->query("SELECT id, title FROM courses ORDER BY title")->fetchAll(PDO::FETCH_ASSOC);
 
         require_once __DIR__ . '/../views/admin/lessons.php';
+    }
+
+    public function createLesson() {
+        Auth::requireRole('admin');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $title = trim($_POST['title'] ?? '');
+            $content = trim($_POST['content'] ?? '');
+            $courseId = $_POST['course_id'] ?? null;
+
+            if (!$title || !$courseId) {
+                $_SESSION['flash_error'] = "Заполните название и выберите курс";
+                header("Location: /admin/lessons");
+                exit;
+            }
+
+            $db = Database::connect();
+            $stmt = $db->prepare("INSERT INTO lessons (course_id, title, content) VALUES (?, ?, ?)");
+            $stmt->execute([(int)$courseId, $title, $content]);
+
+            $this->logAction("Создан урок: $title (курс ID: $courseId)");
+        }
+
+        header("Location: /admin/lessons");
+        exit;
+    }
+
+    public function updateLesson() {
+        Auth::requireRole('admin');
+
+        $id = $_POST['id'] ?? null;
+        $title = trim($_POST['title'] ?? '');
+        $content = trim($_POST['content'] ?? '');
+        $courseId = $_POST['course_id'] ?? null;
+
+        if (!$id || !$title || !$courseId) {
+            if ($this->isAjax()) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Недостаточно данных']);
+                exit;
+            }
+            $_SESSION['flash_error'] = "Недостаточно данных";
+            header("Location: /admin/lessons");
+            exit;
+        }
+
+        $db = Database::connect();
+        $stmt = $db->prepare("UPDATE lessons SET title = ?, content = ?, course_id = ? WHERE id = ?");
+        $ok = $stmt->execute([$title, $content, (int)$courseId, (int)$id]);
+
+        $this->logAction("Обновлён урок ID: $id");
+
+        if ($this->isAjax()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => (bool)$ok, 'id' => $id, 'title' => $title, 'course_title' => $this->getCourseTitle($courseId)]);
+            exit;
+        }
+
+        header("Location: /admin/lessons");
+        exit;
+    }
+
+    public function deleteLesson() {
+        Auth::requireRole('admin');
+
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            $db = Database::connect();
+            $stmt = $db->prepare("DELETE FROM lesson_progress WHERE lesson_id = ?");
+            $stmt->execute([(int)$id]);
+
+            $stmt = $db->prepare("DELETE FROM lessons WHERE id = ?");
+            $stmt->execute([(int)$id]);
+
+            $this->logAction("Удалён урок ID: $id");
+        }
+
+        header("Location: /admin/lessons");
+        exit;
+    }
+
+    private function getCourseTitle($courseId) {
+        $db = Database::connect();
+        $stmt = $db->prepare("SELECT title FROM courses WHERE id = ? LIMIT 1");
+        $stmt->execute([(int)$courseId]);
+        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $r['title'] ?? '';
+    }
+
+    private function jsonSuccess()
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    private function jsonError($error)
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => $error]);
+        exit;
     }
 
     public function supportTickets() {

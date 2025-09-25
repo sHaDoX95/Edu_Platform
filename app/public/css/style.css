@@ -1781,7 +1781,9 @@ html, body {
 .admin-actions {
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap;
+    max-width: 400px;
 }
 
 .table-form {
