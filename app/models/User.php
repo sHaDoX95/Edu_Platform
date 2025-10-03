@@ -109,7 +109,7 @@ class User {
         $stmt = $db->prepare("UPDATE users SET role = ?, blocked = ? WHERE id = ?");
         $stmt->execute([
             $role,
-            $blocked ? true : false, // строго boolean для PostgreSQL
+            $blocked ? true : false,
             $id
         ]);
     }

@@ -14,7 +14,7 @@ class AdminController {
         $usersCount = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn();
         $coursesCount = (int)$db->query("SELECT COUNT(*) FROM courses")->fetchColumn();
         $lessonsCount = (int)$db->query("SELECT COUNT(*) FROM lessons")->fetchColumn();
-        $ticketsCount = (int)$db->query("SELECT COUNT(*) FROM support_tickets WHERE status = 'open'")->fetchColumn();
+        $ticketsCount = (int)$db->query("SELECT COUNT(*) FROM tickets WHERE status = 'open'")->fetchColumn();
         $teachersCount = (int)$db->query("SELECT COUNT(*) FROM users WHERE role = 'teacher'")->fetchColumn();
 
         require_once __DIR__ . '/../views/admin/index.php';

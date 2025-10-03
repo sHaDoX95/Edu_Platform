@@ -16,6 +16,7 @@ $courseId = $_GET['course_id'] ?? '';
         <p>
             Вы вошли как <strong><?= htmlspecialchars($user['name']) ?></strong> |
             <a href="/teacher">👨‍🏫 Личный кабинет</a> |
+            <a href="/support">🆘 Поддержка</a> | 
             <a href="/auth/logout">🚪 Выйти</a>
         </p>
     </nav>

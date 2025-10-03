@@ -17,6 +17,7 @@
             <?php else: ?>
                 <a href="/user">👤 Личный кабинет</a> |
             <?php endif; ?>
+            <a href="/support">🆘 Поддержка</a> | 
             <a href="/auth/logout">🚪 Выйти</a>
         </p>
     </nav>

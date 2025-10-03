@@ -1934,3 +1934,145 @@ html, body {
 .blink {
   animation: blink 0.8s ease-in-out;
 }
+
+.ticket-link {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.ticket-link:hover {
+    color: #667eea;
+    text-decoration: underline;
+}
+
+.status-open {
+    background: #e8f5e8;
+    color: #28a745;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: #fff6d1;
+    color: #ffc107;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.status-closed {
+    background: #f8f9fa;
+    color: #6c757d;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.status-resolved {
+    background: #e6f7ff;
+    color: #17a2b8;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.ticket-header {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    border-left: 4px solid #667eea;
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.ticket-id {
+    background: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.ticket-date {
+    color: #666;
+    font-size: 0.95em;
+}
+
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.message-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.message-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+}
+
+.admin-message {
+    border-left-color: #28a745;
+    background: #f8fff9;
+}
+
+.user-message {
+    border-left-color: #667eea;
+    background: #f8f9ff;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.message-author {
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.admin-badge {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+
+.message-time {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.message-content {
+    color: #333;
+    line-height: 1.6;
+    font-size: 1em;
+}
