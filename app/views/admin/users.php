@@ -191,7 +191,7 @@ async function updateUserField(selectElement, fieldName) {
                 this.style.backgroundColor = originalBackground;
                 this.disabled = false;
                 row.classList.remove('save-success');
-                this.setAttribute('data-previous-value', this.value); // обновляем предыдущий
+                this.setAttribute('data-previous-value', this.value);
             }, 1500);
         } else {
             throw new Error(result.error || 'Ошибка при обновлении');
@@ -252,7 +252,7 @@ document.querySelectorAll('.user-role-select, .user-status-select').forEach(sele
                     this.style.backgroundColor = originalBackground;
                     this.disabled = false;
                     row.classList.remove('save-success');
-                    this.setAttribute('data-previous-value', this.value); // обновляем предыдущий
+                    this.setAttribute('data-previous-value', this.value);
                 }, 1500);
 
             } else {
@@ -263,7 +263,7 @@ document.querySelectorAll('.user-role-select, .user-status-select').forEach(sele
             console.error(err);
             this.style.border = '2px solid #dc3545';
             this.style.backgroundColor = '#fff5f5';
-            this.value = this.getAttribute('data-previous-value'); // откат
+            this.value = this.getAttribute('data-previous-value');
             setTimeout(() => {
                 this.style.border = originalBorder;
                 this.style.backgroundColor = originalBackground;

@@ -94,7 +94,7 @@ button:hover {
     border-radius: 50px;
     font-size: 1.1em;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .search-input:focus {
@@ -124,7 +124,7 @@ button:hover {
     background: white;
     border-radius: 16px;
     padding: 25px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     border: 1px solid #f0f0f0;
     position: relative;
@@ -143,7 +143,7 @@ button:hover {
 
 .course-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
 .course-title {
@@ -232,9 +232,17 @@ button:hover {
 }
 
 @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 .lesson-item {
@@ -243,12 +251,12 @@ button:hover {
     border-radius: 6px;
     list-style: none;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .lesson-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
 .lesson-item.done {
@@ -328,8 +336,13 @@ ul.course-list li small {
 }
 
 @keyframes spin {
-    0% { transform: translateY(-50%) rotate(0deg); }
-    100% { transform: translateY(-50%) rotate(360deg); }
+    0% {
+        transform: translateY(-50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translateY(-50%) rotate(360deg);
+    }
 }
 
 .course-header {
@@ -349,7 +362,7 @@ ul.course-list li small {
     right: -50%;
     width: 100%;
     height: 200%;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     transform: rotate(45deg);
 }
 
@@ -386,7 +399,7 @@ ul.course-list li small {
     background: white;
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     margin-bottom: 30px;
 }
 
@@ -432,20 +445,25 @@ ul.course-list li small {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
     animation: shimmer 2s infinite;
 }
 
 @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 .lessons-section {
     background: white;
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
@@ -472,7 +490,7 @@ ul.course-list li small {
 
 .lesson-item-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .lesson-header {
@@ -512,9 +530,17 @@ ul.course-list li small {
     font-weight: 500;
 }
 
-.status-complete { background: #28a745; }
-.status-partial { background: #ffc107; }
-.status-pending { background: #dc3545; }
+.status-complete {
+    background: #28a745;
+}
+
+.status-partial {
+    background: #ffc107;
+}
+
+.status-pending {
+    background: #dc3545;
+}
 
 .teacher-actions {
     display: flex;
@@ -630,8 +656,13 @@ ul.course-list li small {
     margin-bottom: 10px;
 }
 
-.status-passed { color: #28a745; }
-.status-failed { color: #dc3545; }
+.status-passed {
+    color: #28a745;
+}
+
+.status-failed {
+    color: #dc3545;
+}
 
 .auth-container {
     max-width: 450px;
@@ -760,8 +791,15 @@ ul.course-list li small {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .auth-container {
@@ -843,7 +881,7 @@ ul.course-list li small {
     background: white;
     padding: 30px;
     border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     margin-bottom: 30px;
 }
 
@@ -866,7 +904,7 @@ ul.course-list li small {
 
 .course-card-profile:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .course-title-profile {
@@ -950,7 +988,7 @@ ul.course-list li small {
 
 .lesson-item-profile:hover {
     transform: translateX(5px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .lesson-status {
@@ -960,9 +998,17 @@ ul.course-list li small {
     flex-shrink: 0;
 }
 
-.status-done { background: #28a745; }
-.status-partial { background: #ffc107; }
-.status-not-done { background: #dc3545; }
+.status-done {
+    background: #28a745;
+}
+
+.status-partial {
+    background: #ffc107;
+}
+
+.status-not-done {
+    background: #dc3545;
+}
 
 .lesson-info {
     flex-grow: 1;
@@ -1004,6 +1050,7 @@ ul.course-list li small {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1049,7 +1096,7 @@ ul.course-list li small {
 
 .question-block:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .question-text {
@@ -1204,6 +1251,7 @@ ul.course-list li small {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1218,7 +1266,7 @@ ul.course-list li small {
     animation: fadeInUp 0.8s ease-out;
 }
 
-.option-label input[type="radio"]:checked + .option-text {
+.option-label input[type="radio"]:checked+.option-text {
     color: #667eea;
     font-weight: 600;
 }
@@ -1392,6 +1440,7 @@ ul.course-list li small {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1503,7 +1552,7 @@ ul.course-list li small {
 
 .teacher-course-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
 .course-title-teacher {
@@ -1597,6 +1646,7 @@ ul.course-list li small {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1652,7 +1702,8 @@ ul.course-list li small {
     background: #dc3545;
 }
 
-html, body {
+html,
+body {
     max-width: 100%;
     overflow-x: hidden;
 }
@@ -1671,7 +1722,7 @@ html, body {
     padding: 30px;
     background: white;
     border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .admin-stats-grid {
@@ -1685,7 +1736,7 @@ html, body {
     background: white;
     border-radius: 16px;
     padding: 25px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     border-left: 4px solid #667eea;
     transition: all 0.3s ease;
     text-align: center;
@@ -1693,7 +1744,7 @@ html, body {
 
 .admin-stat-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
 .admin-stat-title {
@@ -1717,7 +1768,7 @@ html, body {
     background: white;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     margin: 30px 0;
 }
 
@@ -1746,7 +1797,7 @@ html, body {
     background: white;
     padding: 30px;
     border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     margin-bottom: 40px;
 }
 
@@ -1864,30 +1915,30 @@ html, body {
     .admin-stats-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .admin-table {
         font-size: 0.9em;
     }
-    
+
     .admin-table th,
     .admin-table td {
         padding: 10px;
     }
-    
+
     .admin-actions {
         flex-direction: column;
     }
-    
+
     .admin-form-grid,
     .admin-form-inline {
         grid-template-columns: 1fr;
     }
-    
+
     .admin-form select,
     .admin-form input {
         min-width: 100%;
     }
-    
+
     .table-form {
         flex-direction: column;
         align-items: stretch;
@@ -1900,7 +1951,7 @@ html, body {
     gap: 10px;
 }
 
-.search-form input, 
+.search-form input,
 .search-form select {
     padding: 6px 10px;
     font-size: 14px;
@@ -1926,13 +1977,21 @@ html, body {
 }
 
 @keyframes blink {
-  0% { background-color: #d4edda; }
-  50% { background-color: #ffffff; }
-  100% { background-color: #d4edda; }
+    0% {
+        background-color: #d4edda;
+    }
+
+    50% {
+        background-color: #ffffff;
+    }
+
+    100% {
+        background-color: #d4edda;
+    }
 }
 
 .blink {
-  animation: blink 0.8s ease-in-out;
+    animation: blink 0.8s ease-in-out;
 }
 
 .ticket-link {
@@ -1987,7 +2046,7 @@ html, body {
     background: white;
     padding: 30px;
     border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     margin-bottom: 30px;
     border-left: 4px solid #667eea;
 }
@@ -2023,14 +2082,14 @@ html, body {
     background: white;
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     border-left: 4px solid #667eea;
     transition: all 0.3s ease;
 }
 
 .message-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
 }
 
 .admin-message {
@@ -2075,4 +2134,297 @@ html, body {
     color: #333;
     line-height: 1.6;
     font-size: 1em;
+}
+
+.ticket-header {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border-left: 4px solid #667eea;
+}
+
+.ticket-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    gap: 20px;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.user-info strong {
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.ticket-info {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.ticket-id {
+    background: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.ticket-date {
+    color: #666;
+    font-size: 0.95em;
+}
+
+.initial-message {
+    margin-bottom: 40px;
+}
+
+.messages-section {
+    margin-bottom: 40px;
+}
+
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.message-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.message-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+}
+
+.admin-message {
+    border-left-color: #28a745;
+    background: #f8fff9;
+}
+
+.user-message {
+    border-left-color: #667eea;
+    background: #f8f9ff;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.message-author {
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.admin-badge {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+
+.message-time {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.message-content {
+    color: #333;
+    line-height: 1.6;
+    font-size: 1em;
+}
+
+.admin-form-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.status-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-actions label {
+    margin: 0;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.status-actions select {
+    min-width: 150px;
+}
+
+a.back-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+a.back-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .ticket-meta {
+        flex-direction: column;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .status-actions {
+        justify-content: space-between;
+    }
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.status-open {
+    background: #dc3545;
+    color: #fff;
+}
+
+.status-in_progress {
+    background: #ffc107;
+    color: #222;
+}
+
+.status-closed {
+    background: #28a745;
+    color: #fff;
+}
+
+.blink {
+    animation: blinkAnim 0.6s ease-in-out;
+    background-color: #fffbf0 !important;
+}
+
+@keyframes blinkAnim {
+    0% {
+        background-color: #fffbf0;
+    }
+
+    50% {
+        background-color: #fff8e1;
+    }
+
+    100% {
+        background-color: #fffbf0;
+    }
+}
+
+.save-success {
+    animation: successAnim 2s ease-in-out;
+}
+
+@keyframes successAnim {
+    0% {
+        background: #d4edda
+    }
+
+    30% {
+        background: #e8f5e8
+    }
+
+    100% {
+        background: transparent
+    }
+}
+
+.save-error {
+    animation: errorAnim 3s ease-in-out;
+}
+
+@keyframes errorAnim {
+    0% {
+        background: #f8d7da
+    }
+
+    30% {
+        background: #ffe6e6
+    }
+
+    100% {
+        background: transparent
+    }
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9em;
+    text-transform: none;
+}
+
+.status-open {
+    background: #dc3545;
+    color: #fff;
+}
+
+.status-in_progress {
+    background: #ffc107;
+    color: #222;
+}
+
+.status-closed {
+    background: #28a745;
+    color: #fff;
+}
+
+.ticket-header {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border-left: 4px solid #667eea;
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 15px;
 }

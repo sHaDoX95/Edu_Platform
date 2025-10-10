@@ -78,9 +78,9 @@ class AdminController {
 
         $id = $_POST['id'] ?? null;
         $role = $_POST['role'] ?? null;
-        $blocked = isset($_POST['blocked']) ? intval($_POST['blocked']) : null; // 0 или 1
+        $blocked = isset($_POST['blocked']) ? intval($_POST['blocked']) : null;
 
-        header('Content-Type: application/json'); // ставим JSON сразу
+        header('Content-Type: application/json');
 
         if (!$id || ($role === null && $blocked === null)) {
             echo json_encode(['success' => false, 'error' => 'Некорректные данные']);
