@@ -49,7 +49,7 @@ $user = Auth::user();
         <div class="admin-stat-card">
             <div class="admin-stat-title">Системные логи</div>
             <div class="admin-stat-number"><?= $logsCount ?? 0 ?></div>
-            <a href="/admin/logs" class="course-action">Посмотреть</a>
+            <a href="/admin/systemLogs" class="course-action">Посмотреть</a>
         </div>
     </div>
 </div>

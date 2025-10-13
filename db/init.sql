@@ -322,10 +322,13 @@ INSERT INTO system_settings (key, value, description) VALUES
 ('registration_enabled', 'true', 'Разрешить регистрацию новых пользователей'),
 ('max_courses_per_teacher', '10', 'Максимум курсов на преподавателя');
 
-CREATE TABLE IF NOT EXISTS system_logs (
+CREATE TABLE system_logs (
     id SERIAL PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    message TEXT
+    user_id INTEGER REFERENCES users(id) NULL,
+    action TEXT NOT NULL,
+    ip TEXT NULL,
+    details TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_lesson ON lesson_progress(user_id, lesson_id);
@@ -333,8 +336,3 @@ CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets(status);
 CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at);
 
 ALTER TABLE courses ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE system_logs
-ADD COLUMN user_id INTEGER REFERENCES users(id),
-ADD COLUMN action TEXT,
-ADD COLUMN details TEXT,
-ADD COLUMN ip_address TEXT;

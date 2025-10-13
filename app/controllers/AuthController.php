@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../core/Logger.php';
 
 class AuthController {
     public function login() {
@@ -10,6 +11,7 @@ class AuthController {
             $user = User::findByEmail($email);
             if ($user) {
                 if (!empty($user['blocked']) && $user['blocked'] == true) {
+                    Logger::log('Попытка входа заблокированного пользователя', "ID: {$user['id']}, Email: {$user['email']}");
                     $error = "Ваш аккаунт заблокирован. Обратитесь к администратору.";
                     require_once __DIR__ . '/../views/auth/login.php';
                     return;
@@ -17,6 +19,8 @@ class AuthController {
 
                 if (password_verify($password, $user['password'])) {
                     $_SESSION['user_id'] = $user['id'];
+                    Logger::log('Вход в систему', "ID: {$user['id']}, Email: {$user['email']}");
+
                     if ($user['role'] === 'teacher') {
                         header("Location: /teacher");
                     } elseif ($user['role'] === 'admin') {
@@ -27,6 +31,8 @@ class AuthController {
                     exit;
                 }
             }
+
+            Logger::log('Неудачная попытка входа', "Email: {$email}");
             $error = "Неверный логин или пароль";
         }
 
@@ -53,13 +59,12 @@ class AuthController {
             }
 
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $userId = User::create($email, $hashedPassword, $name);
+            $userId = User::create($name, $email, $hashedPassword); // поправил порядок параметров
+            Logger::log('Регистрация пользователя', "ID: {$userId}, Email: {$email}, Имя: {$name}");
+
             $_SESSION['user_id'] = $userId;
 
-            $pdo = Database::connect();
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
-            $stmt->execute(['id' => $userId]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user = User::find($userId);
 
             if ($user['role'] === 'teacher') {
                 header("Location: /teacher");
@@ -75,6 +80,10 @@ class AuthController {
     }
 
     public function logout() {
+        $user = User::find($_SESSION['user_id'] ?? 0);
+        if ($user) {
+            Logger::log('Выход из системы', "ID: {$user['id']}, Email: {$user['email']}");
+        }
         session_destroy();
         header('Location: /auth/login');
         exit;

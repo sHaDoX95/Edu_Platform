@@ -3,9 +3,12 @@ require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Course.php';
 require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../core/Logger.php';
 
-class AdminController {
-    public function index() {
+class AdminController
+{
+    public function index()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
@@ -16,18 +19,20 @@ class AdminController {
         $lessonsCount = (int)$db->query("SELECT COUNT(*) FROM lessons")->fetchColumn();
         $ticketsCount = (int)$db->query("SELECT COUNT(*) FROM tickets WHERE status = 'open'")->fetchColumn();
         $teachersCount = (int)$db->query("SELECT COUNT(*) FROM users WHERE role = 'teacher'")->fetchColumn();
+        $logsCount = (int)$db->query("SELECT COUNT(*) FROM system_logs")->fetchColumn();
 
         require_once __DIR__ . '/../views/admin/index.php';
     }
 
-    public function users() {
+    public function users()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
         $role = $_GET['role'] ?? '';
         $status = $_GET['status'] ?? '';
         $q = trim($_GET['q'] ?? '');
-        
+
         $limit = 5;
         $currentPage = max(1, (int)($_GET['page'] ?? 1));
         $offset = ($currentPage - 1) * $limit;
@@ -43,7 +48,8 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/users.php';
     }
 
-    public function storeUser() {
+    public function storeUser()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
@@ -72,7 +78,8 @@ class AdminController {
         exit;
     }
 
-    public function updateUser() {
+    public function updateUser()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
@@ -107,21 +114,22 @@ class AdminController {
                 'blocked' => $blocked ?? ''
             ]);
             exit;
-
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             exit;
         }
     }
 
-    private function isAjax() {
+    private function isAjax()
+    {
         return (
             !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
         );
     }
 
-    public function deleteUser() {
+    public function deleteUser()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
@@ -133,7 +141,8 @@ class AdminController {
         exit;
     }
 
-    public function attachStudent() {
+    public function attachStudent()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
@@ -146,7 +155,8 @@ class AdminController {
         exit;
     }
 
-    public function detachStudent() {
+    public function detachStudent()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
@@ -159,11 +169,12 @@ class AdminController {
         exit;
     }
 
-    public function dashboard() {
+    public function dashboard()
+    {
         Auth::requireRole('admin');
-        
+
         $db = Database::connect();
-        
+
         $stats = [
             'users' => [
                 'total' => (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
@@ -187,7 +198,7 @@ class AdminController {
                 'test_attempts' => (int)$db->query("SELECT COUNT(*) FROM lesson_progress WHERE test_score IS NOT NULL")->fetchColumn()
             ]
         ];
-        
+
         $recentActions = $db->query("
             SELECT u.name, sl.action, sl.details, sl.created_at 
             FROM system_logs sl 
@@ -195,7 +206,7 @@ class AdminController {
             ORDER BY sl.created_at DESC 
             LIMIT 10
         ")->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $openTickets = $db->query("
             SELECT COUNT(*) as count FROM support_tickets WHERE status = 'open'
         ")->fetchColumn();
@@ -203,9 +214,10 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/dashboard.php';
     }
 
-    public function courses() {
+    public function courses()
+    {
         Auth::requireRole('admin');
-        
+
         $db = Database::connect();
 
         $limit = 5;
@@ -256,14 +268,15 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/courses.php';
     }
 
-    public function createCourse() {
+    public function createCourse()
+    {
         Auth::requireRole('admin');
-        
+
         if ($_POST) {
             $title = trim($_POST['title'] ?? '');
             $description = trim($_POST['description'] ?? '');
             $teacherId = $_POST['teacher_id'] ?? null;
-            
+
             if ($title && $description) {
                 Course::create($title, $description, $teacherId);
                 $this->logAction("Создан курс: $title");
@@ -271,12 +284,13 @@ class AdminController {
                 exit;
             }
         }
-        
+
         header("Location: /admin/courses?error=empty_fields");
         exit;
     }
 
-    public function updateCourse() {
+    public function updateCourse()
+    {
         Auth::requireRole('admin');
 
         $id = $_POST['id'] ?? null;
@@ -298,7 +312,8 @@ class AdminController {
         echo json_encode(['success' => true]);
     }
 
-    public function updateCourseTeacher() {
+    public function updateCourseTeacher()
+    {
         Auth::requireRole('admin');
 
         $id = $_POST['id'] ?? null;
@@ -318,20 +333,22 @@ class AdminController {
         echo json_encode(['success' => true]);
     }
 
-    public function deleteCourse() {
+    public function deleteCourse()
+    {
         Auth::requireRole('admin');
-        
+
         $id = $_GET['id'] ?? null;
         if ($id) {
             Course::delete($id);
             $this->logAction("Удален курс ID: $id");
         }
-        
+
         header("Location: /admin/courses");
         exit;
     }
 
-    public function lessons() {
+    public function lessons()
+    {
         Auth::requireRole('admin');
 
         $db = Database::connect();
@@ -391,7 +408,8 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/lessons.php';
     }
 
-    public function createLesson() {
+    public function createLesson()
+    {
         Auth::requireRole('admin');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -416,7 +434,8 @@ class AdminController {
         exit;
     }
 
-    public function updateLesson() {
+    public function updateLesson()
+    {
         Auth::requireRole('admin');
 
         $id = $_POST['id'] ?? null;
@@ -451,7 +470,8 @@ class AdminController {
         exit;
     }
 
-    public function deleteLesson() {
+    public function deleteLesson()
+    {
         Auth::requireRole('admin');
 
         $id = $_GET['id'] ?? null;
@@ -470,7 +490,8 @@ class AdminController {
         exit;
     }
 
-    private function getCourseTitle($courseId) {
+    private function getCourseTitle($courseId)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("SELECT title FROM courses WHERE id = ? LIMIT 1");
         $stmt->execute([(int)$courseId]);
@@ -492,20 +513,21 @@ class AdminController {
         exit;
     }
 
-    public function supportTickets() {
+    public function supportTickets()
+    {
         Auth::requireRole('admin');
-        
+
         $db = Database::connect();
         $status = $_GET['status'] ?? 'open';
-        
+
         $where = "WHERE status = ?";
         $params = [$status];
-        
+
         if ($status === 'all') {
             $where = "";
             $params = [];
         }
-        
+
         $tickets = $db->prepare("
             SELECT st.*, u.name as user_name, u.email as user_email
             FROM support_tickets st
@@ -519,32 +541,34 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/support.php';
     }
 
-    public function updateTicketStatus() {
+    public function updateTicketStatus()
+    {
         Auth::requireRole('admin');
-        
+
         $ticketId = $_POST['ticket_id'] ?? null;
         $status = $_POST['status'] ?? null;
         $response = trim($_POST['response'] ?? '');
-        
+
         if ($ticketId && $status) {
             $db = Database::connect();
             $stmt = $db->prepare("UPDATE support_tickets SET status = ? WHERE id = ?");
             $stmt->execute([$status, $ticketId]);
-            
+
             if ($response) {
                 $this->logAction("Обновлен тикет ID: $ticketId, статус: $status");
             }
         }
-        
+
         header("Location: /admin/support");
         exit;
     }
 
-    public function systemSettings() {
+    public function systemSettings()
+    {
         Auth::requireRole('admin');
-        
+
         $db = Database::connect();
-        
+
         if ($_POST) {
             foreach ($_POST['settings'] as $key => $value) {
                 $stmt = $db->prepare("
@@ -554,12 +578,12 @@ class AdminController {
                 ");
                 $stmt->execute([$key, $value]);
             }
-            
+
             $this->logAction("Обновлены настройки системы");
             header("Location: /admin/settings?success=1");
             exit;
         }
-        
+
         $settings = $db->query("SELECT key, value, description FROM system_settings")->fetchAll(PDO::FETCH_ASSOC);
         $settingsMap = [];
         foreach ($settings as $setting) {
@@ -569,41 +593,133 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/settings.php';
     }
 
-    public function systemLogs() {
+    public function systemLogs()
+    {
         Auth::requireRole('admin');
-        
+
         $db = Database::connect();
         $page = max(1, $_GET['page'] ?? 1);
         $perPage = 50;
         $offset = ($page - 1) * $perPage;
-        
-        $total = $db->query("SELECT COUNT(*) FROM system_logs")->fetchColumn();
+
+        $filters = [];
+        $params = [];
+
+        if (!empty($_GET['user_id'])) {
+            $filters[] = "sl.user_id = :user_id";
+            $params[':user_id'] = (int)$_GET['user_id'];
+        }
+
+        if (!empty($_GET['action'])) {
+            $filters[] = "sl.action ILIKE :action";
+            $params[':action'] = '%' . $_GET['action'] . '%';
+        }
+
+        if (!empty($_GET['from'])) {
+            $filters[] = "sl.created_at >= :from";
+            $params[':from'] = $_GET['from'];
+        }
+
+        if (!empty($_GET['to'])) {
+            $filters[] = "sl.created_at <= :to";
+            $params[':to'] = $_GET['to'];
+        }
+
+        $where = $filters ? "WHERE " . implode(' AND ', $filters) : '';
+
+        $totalStmt = $db->prepare("SELECT COUNT(*) FROM system_logs sl $where");
+        $totalStmt->execute($params);
+        $total = (int)$totalStmt->fetchColumn();
         $totalPages = ceil($total / $perPage);
-        
-        $logs = $db->prepare("
+
+        $stmt = $db->prepare("
             SELECT sl.*, u.name as user_name 
             FROM system_logs sl 
             LEFT JOIN users u ON u.id = sl.user_id 
-            ORDER BY sl.created_at DESC 
-            LIMIT ? OFFSET ?
+            $where
+            ORDER BY sl.created_at DESC
+            LIMIT :limit OFFSET :offset
         ");
-        $logs->execute([$perPage, $offset]);
-        $logs = $logs->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($params as $k => $v) {
+            if ($k === ':user_id') $stmt->bindValue($k, $v, PDO::PARAM_INT);
+            else $stmt->bindValue($k, $v, PDO::PARAM_STR);
+        }
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         require_once __DIR__ . '/../views/admin/logs.php';
     }
 
-    public function userDetail($userId) {
+    public function deleteLog()
+    {
         Auth::requireRole('admin');
-        
+        $logId = $_GET['id'] ?? null;
+
+        if ($logId) {
+            $db = Database::connect();
+            $stmt = $db->prepare("DELETE FROM system_logs WHERE id = ?");
+            $stmt->execute([$logId]);
+            $_SESSION['flash_success'] = "Лог #$logId успешно удалён";
+        } else {
+            $_SESSION['flash_error'] = "Не указан ID лога для удаления";
+        }
+
+        header("Location: /admin/systemLogs");
+        exit;
+    }
+
+    public function exportLogsCsv()
+    {
+        Auth::requireRole('admin');
+
         $db = Database::connect();
-        
+        $logs = $db->query("
+        SELECT sl.id, u.name AS user_name, sl.action, sl.details, sl.ip, sl.created_at
+        FROM system_logs sl
+        LEFT JOIN users u ON u.id = sl.user_id
+        ORDER BY sl.created_at DESC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($logs)) {
+            $_SESSION['flash_error'] = "Нет логов для экспорта";
+            header("Location: /admin/systemLogs");
+            exit;
+        }
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="system_logs.csv"');
+
+        $output = fopen('php://output', 'w');
+        fputcsv($output, ['ID', 'Пользователь', 'Действие', 'Детали', 'IP', 'Дата']);
+        foreach ($logs as $row) {
+            fputcsv($output, [
+                $row['id'],
+                $row['user_name'],
+                $row['action'],
+                $row['details'],
+                $row['ip'],
+                $row['created_at']
+            ]);
+        }
+        fclose($output);
+        exit;
+    }
+
+    public function userDetail($userId)
+    {
+        Auth::requireRole('admin');
+
+        $db = Database::connect();
+
         $user = User::find($userId);
         if (!$user) {
             header("Location: /admin/users");
             exit;
         }
-        
+
         $progress = $db->prepare("
             SELECT c.title as course_title, l.title as lesson_title,
                    lp.completed_at, lp.test_score, lp.test_passed
@@ -615,7 +731,7 @@ class AdminController {
         ");
         $progress->execute([$userId]);
         $progress = $progress->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $userCourses = $db->prepare("
             SELECT c.* FROM courses c
             JOIN user_courses uc ON uc.course_id = c.id
@@ -627,49 +743,52 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/user_detail.php';
     }
 
-    public function blockUser() {
+    public function blockUser()
+    {
         Auth::requireRole('admin');
-        
+
         $userId = $_POST['user_id'] ?? null;
         $reason = trim($_POST['reason'] ?? '');
-        
+
         if ($userId) {
             $db = Database::connect();
             $stmt = $db->prepare("UPDATE users SET blocked = true WHERE id = ?");
             $stmt->execute([$userId]);
-            
+
             $this->logAction("Заблокирован пользователь ID: $userId. Причина: $reason");
         }
-        
+
         header("Location: /admin/users");
         exit;
     }
 
-    public function unblockUser() {
+    public function unblockUser()
+    {
         Auth::requireRole('admin');
-        
+
         $userId = $_POST['user_id'] ?? null;
-        
+
         if ($userId) {
             $db = Database::connect();
             $stmt = $db->prepare("UPDATE users SET blocked = false WHERE id = ?");
             $stmt->execute([$userId]);
-            
+
             $this->logAction("Разблокирован пользователь ID: $userId");
         }
-        
+
         header("Location: /admin/users");
         exit;
     }
 
-    public function sendNotification() {
+    public function sendNotification()
+    {
         Auth::requireRole('admin');
-        
+
         $userId = $_POST['user_id'] ?? null;
         $title = trim($_POST['title'] ?? '');
         $message = trim($_POST['message'] ?? '');
         $type = $_POST['type'] ?? 'info';
-        
+
         if ($userId && $title && $message) {
             $db = Database::connect();
             $stmt = $db->prepare("
@@ -677,18 +796,19 @@ class AdminController {
                 VALUES (?, ?, ?, ?)
             ");
             $stmt->execute([$userId, $title, $message, $type]);
-            
+
             $this->logAction("Отправлено уведомление пользователю ID: $userId");
         }
-        
+
         header("Location: /admin/users");
         exit;
     }
 
-    private function logAction($action, $details = '') {
+    private function logAction($action, $details = '')
+    {
         $db = Database::connect();
         $stmt = $db->prepare("
-            INSERT INTO system_logs (user_id, action, details, ip_address) 
+            INSERT INTO system_logs (user_id, action, details, ip) 
             VALUES (?, ?, ?, ?)
         ");
         $stmt->execute([
@@ -699,7 +819,8 @@ class AdminController {
         ]);
     }
 
-    public function editUser() {
+    public function editUser()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 
@@ -719,7 +840,8 @@ class AdminController {
         require __DIR__ . '/../views/admin/editUser.php';
     }
 
-    public function updateUserData() {
+    public function updateUserData()
+    {
         Auth::requireLogin();
         Auth::requireRole('admin');
 

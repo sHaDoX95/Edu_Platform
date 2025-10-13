@@ -1,8 +1,11 @@
 <?php
 require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../core/Logger.php';
 
-class Progress {
-    public static function isCompleted($userId, $lessonId) {
+class Progress
+{
+    public static function isCompleted($userId, $lessonId)
+    {
         $pdo = Database::connect();
         $stmt = $pdo->prepare("SELECT completed_at FROM lesson_progress WHERE user_id = :uid AND lesson_id = :lid LIMIT 1");
         $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
@@ -10,24 +13,31 @@ class Progress {
         return $row && !empty($row['completed_at']);
     }
 
-    public static function markCompleted($userId, $lessonId) {
+    public static function markCompleted($userId, $lessonId)
+    {
         $pdo = Database::connect();
         $stmt = $pdo->prepare("
             INSERT INTO lesson_progress (user_id, lesson_id, completed_at)
             VALUES (:uid, :lid, CURRENT_TIMESTAMP)
             ON CONFLICT (user_id, lesson_id) DO UPDATE
-              SET completed_at = CURRENT_TIMESTAMP
+            SET completed_at = CURRENT_TIMESTAMP
         ");
         $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
+
+        Logger::log('Урок завершён', "Пользователь ID $userId завершил урок ID $lessonId", $userId);
     }
 
-    public static function unmarkCompleted($userId, $lessonId) {
+    public static function unmarkCompleted($userId, $lessonId)
+    {
         $pdo = Database::connect();
         $stmt = $pdo->prepare("UPDATE lesson_progress SET completed_at = NULL WHERE user_id = :uid AND lesson_id = :lid");
         $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
+
+        Logger::log('Отмена завершения урока', "Пользователь ID $userId снял отметку с урока ID $lessonId", $userId);
     }
 
-    public static function countCompleted($userId, $courseId) {
+    public static function countCompleted($userId, $courseId)
+    {
         $pdo = Database::connect();
         $stmt = $pdo->prepare("
             SELECT COUNT(lp.id)
@@ -39,7 +49,8 @@ class Progress {
         return (int)$stmt->fetchColumn();
     }
 
-    public static function isTestPassed($userId, $lessonId) {
+    public static function isTestPassed($userId, $lessonId)
+    {
         $pdo = Database::connect();
         $stmt = $pdo->prepare("SELECT test_passed FROM lesson_progress WHERE user_id = ? AND lesson_id = ? LIMIT 1");
         $stmt->execute([$userId, $lessonId]);
@@ -49,7 +60,8 @@ class Progress {
         return $v === true || $v === 't' || $v === '1' || $v === 1;
     }
 
-    public static function saveTestResult($userId, $lessonId, $score, $passed) {
+    public static function saveTestResult($userId, $lessonId, $score, $passed)
+    {
         $pdo = Database::connect();
 
         $passed = $passed ? 't' : 'f';
@@ -92,6 +104,12 @@ class Progress {
             ]);
 
             $pdo->commit();
+
+            Logger::log(
+                'Сохранён результат теста',
+                "Пользователь ID $userId, урок ID $lessonId, баллы: $score, пройдено: " . ($passed === 't' ? 'Да' : 'Нет'),
+                $userId
+            );
         } catch (Exception $e) {
             $pdo->rollBack();
             throw $e;

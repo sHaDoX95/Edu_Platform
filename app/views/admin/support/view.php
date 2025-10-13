@@ -104,17 +104,6 @@ $statusLabels = [
             </div>
         </div>
 
-        <section class="initial-message">
-            <h3 class="admin-form-title">📝 Обращение пользователя</h3>
-            <div class="message-card user-message">
-                <div class="message-header">
-                    <strong class="message-author"><?= htmlspecialchars($ticket['user_name']) ?></strong>
-                    <span class="message-time"><?= htmlspecialchars(date('d.m.Y H:i', strtotime($ticket['created_at']))) ?></span>
-                </div>
-                <div class="message-content"><?= nl2br(htmlspecialchars($ticket['message'])) ?></div>
-            </div>
-        </section>
-
         <section class="messages-section">
             <h3 class="admin-form-title">💬 История</h3>
             <?php if (empty($replies)): ?>

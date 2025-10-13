@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../core/Logger.php';
 
 date_default_timezone_set('Europe/Moscow');
 
@@ -31,7 +32,7 @@ class SupportController
 
             $maxTickets = 3;
             if ($ticketCount >= $maxTickets) {
-                $_SESSION['flash_error'] = "Вы достигли максимального количества тикетов ($maxTickets). Удалите старые тикеты или дождитесь ответа администратора.";
+                $_SESSION['flash_error'] = "Вы достигли максимального количества тикетов ($maxTickets).";
                 header("Location: /support");
                 exit;
             }
@@ -47,14 +48,16 @@ class SupportController
         }
 
         $stmt = $db->prepare("
-            INSERT INTO tickets (user_id, subject, message, status, created_at, updated_at) 
-            VALUES (?, ?, ?, 'open', NOW(), NOW())
-        ");
+        INSERT INTO tickets (user_id, subject, message, status, created_at, updated_at) 
+        VALUES (?, ?, ?, 'open', NOW(), NOW())
+    ");
         $stmt->execute([$user['id'], $subject, $message]);
         $ticketId = $db->lastInsertId();
 
         $stmt2 = $db->prepare("INSERT INTO ticket_replies (ticket_id, user_id, message) VALUES (?, ?, ?)");
         $stmt2->execute([$ticketId, $user['id'], $message]);
+
+        Logger::log('Создан тикет', "ID: $ticketId, Пользователь: {$user['id']}, Тема: $subject");
 
         $_SESSION['flash_success'] = "Тикет успешно создан";
         header("Location: /support");
@@ -131,6 +134,8 @@ class SupportController
 
         $stmt = $db->prepare("UPDATE tickets SET updated_at = NOW() WHERE id = ?");
         $stmt->execute([$ticket_id]);
+
+        Logger::log('Добавлен ответ в тикет', "Тикет ID: $ticket_id, Пользователь: {$user['id']}, Сообщение: " . substr($message, 0, 50));
 
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
             echo json_encode([

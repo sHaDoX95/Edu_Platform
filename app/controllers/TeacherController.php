@@ -296,7 +296,7 @@ class TeacherController {
         Auth::requireRole('teacher');
 
         $teacherId = Auth::user()['id'];
-        $courses = Course::findByTeacher($teacherId);
+        $courses = Course::find($teacherId);
 
         require __DIR__ . '/../views/teacher/courses.php';
     }

@@ -1,13 +1,17 @@
 <?php
 require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../core/Logger.php';
 
-class Course {
-    public static function all() {
+class Course
+{
+    public static function all()
+    {
         $pdo = Database::connect();
         return $pdo->query("SELECT * FROM courses")->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function findWithLessons($id) {
+    public static function findWithLessons($id)
+    {
         $pdo = Database::connect();
 
         $stmt = $pdo->prepare("SELECT * FROM courses WHERE id = :id");
@@ -21,7 +25,8 @@ class Course {
         return $course;
     }
 
-    public static function allWithUserProgress($userId) {
+    public static function allWithUserProgress($userId)
+    {
         $pdo = Database::connect();
         $sql = "
             SELECT 
@@ -40,18 +45,29 @@ class Course {
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
-    
-    public static function create($title, $description, $teacherId) {
+
+    public static function create($title, $description, $teacherId)
+    {
         $pdo = Database::connect();
         $stmt = $pdo->prepare("INSERT INTO courses (title, description, teacher_id) VALUES (:title, :description, :tid)");
-        $stmt->execute([
+        $result = $stmt->execute([
             'title' => $title,
             'description' => $description,
             'tid' => $teacherId !== '' ? $teacherId : null
         ]);
+
+        if ($result) {
+            Logger::log(
+                'Создан курс',
+                "Курс '$title' создан. Преподаватель ID: " . ($teacherId ?? 'не назначен')
+            );
+        }
+
+        return $result;
     }
 
-    public static function update($id, $title, $description, $teacherId = null) {
+    public static function update($id, $title, $description, $teacherId = null)
+    {
         $db = Database::connect();
         $query = "UPDATE courses SET title = ?, description = ?";
         $params = [$title, $description];
@@ -65,25 +81,41 @@ class Course {
         $params[] = $id;
 
         $stmt = $db->prepare($query);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+
+        if ($result) {
+            Logger::log(
+                'Обновлён курс',
+                "Курс ID $id обновлён. Новое название: '$title', Преподаватель ID: " . ($teacherId ?? 'не изменён')
+            );
+        }
+
+        return $result;
     }
 
-    public static function updateTeacher($id, $teacherId = null) {
+    public static function updateTeacher($id, $teacherId = null)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("UPDATE courses SET teacher_id = ? WHERE id = ?");
         return $stmt->execute([$teacherId !== '' ? $teacherId : null, $id]);
     }
 
 
-    public static function find($id) {
+    public static function find($id)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("SELECT * FROM courses WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function delete($id) {
+
+    public static function delete($id)
+    {
         $db = Database::connect();
+
+        $course = self::find($id);
+        $title = $course['title'] ?? 'неизвестно';
 
         $stmt = $db->prepare("
             DELETE FROM lesson_progress
@@ -95,10 +127,20 @@ class Course {
         $stmt->execute([$id]);
 
         $stmt = $db->prepare("DELETE FROM courses WHERE id = ?");
-        return $stmt->execute([$id]);
+        $result = $stmt->execute([$id]);
+
+        if ($result) {
+            Logger::log(
+                'Удалён курс',
+                "Курс '$title' удалён (ID: $id)"
+            );
+        }
+
+        return $result;
     }
 
-    public static function getStudentsWithProgress($courseId) {
+    public static function getStudentsWithProgress($courseId)
+    {
         $db = Database::connect();
 
         $sql = "
@@ -126,14 +168,16 @@ class Course {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function searchByTitle($query) {
+    public static function searchByTitle($query)
+    {
         $pdo = Database::connect();
         $stmt = $pdo->prepare("SELECT id, title, description FROM courses WHERE title ILIKE :query");
         $stmt->execute(['query' => '%' . $query . '%']);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function allWithLessonsCount() {
+    public static function allWithLessonsCount()
+    {
         $courses = self::all();
         foreach ($courses as $k => $course) {
             $courses[$k]['lessons_count'] = Lesson::countByCourse($course['id']);
@@ -141,9 +185,10 @@ class Course {
         return $courses;
     }
 
-    public static function getByTeacherWithStats($teacherId) {
+    public static function getByTeacherWithStats($teacherId)
+    {
         $db = Database::connect();
-        
+
         $query = "
             SELECT 
                 c.*,
@@ -156,7 +201,7 @@ class Course {
             GROUP BY c.id
             ORDER BY c.id DESC
         ";
-        
+
         $stmt = $db->prepare($query);
         $stmt->execute([$teacherId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
