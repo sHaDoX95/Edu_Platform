@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../core/Database.php';
 
+date_default_timezone_set('Europe/Moscow');
+
 class SupportController
 {
     public function index()
@@ -98,25 +100,30 @@ class SupportController
         $message = trim($_POST['message'] ?? '');
 
         if (!$ticket_id || !$message) {
+            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+                echo json_encode(['error' => 'Сообщение не может быть пустым']);
+                exit;
+            }
             $_SESSION['flash_error'] = "Сообщение не может быть пустым";
             header("Location: /support/view?id=" . $ticket_id);
             exit;
         }
 
-        $stmt = $db->prepare("
-            SELECT COUNT(*) AS cnt
-            FROM ticket_replies
-            WHERE ticket_id = ? 
-            AND user_id = ?
-            AND created_at > NOW() - INTERVAL '1 minute'
-        ");
-        $stmt->execute([$ticket_id, $user['id']]);
-        $recent = (int)$stmt->fetchColumn();
-
-        if ($recent > 0) {
-            $_SESSION['flash_error'] = "Вы можете отправлять сообщения не чаще одного раза в минуту";
-            header("Location: /support/view?id=" . $ticket_id);
-            exit;
+        if ($user['role'] !== 'admin') {
+            $stmt = $db->prepare("
+                SELECT COUNT(*) FROM ticket_replies 
+                WHERE ticket_id = ? AND user_id = ? AND created_at > NOW() - INTERVAL '1 minute'
+            ");
+            $stmt->execute([$ticket_id, $user['id']]);
+            if ((int)$stmt->fetchColumn() > 0) {
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+                    echo json_encode(['error' => 'Вы можете отправлять сообщения не чаще одного раза в минуту']);
+                    exit;
+                }
+                $_SESSION['flash_error'] = "Вы можете отправлять сообщения не чаще одного раза в минуту";
+                header("Location: /support/view?id=" . $ticket_id);
+                exit;
+            }
         }
 
         $stmt = $db->prepare("INSERT INTO ticket_replies (ticket_id, user_id, message) VALUES (?, ?, ?)");
@@ -125,7 +132,17 @@ class SupportController
         $stmt = $db->prepare("UPDATE tickets SET updated_at = NOW() WHERE id = ?");
         $stmt->execute([$ticket_id]);
 
-        $_SESSION['flash_success'] = "Сообщение успешно отправлено";
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+            echo json_encode([
+                'success' => true,
+                'name' => htmlspecialchars($user['name']),
+                'role' => $user['role'],
+                'message' => nl2br(htmlspecialchars($message)),
+                'time' => date('d.m.Y H:i')
+            ]);
+            exit;
+        }
+
         header("Location: /support/view?id=" . $ticket_id);
         exit;
     }

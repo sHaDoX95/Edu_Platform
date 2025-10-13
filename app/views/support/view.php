@@ -16,6 +16,56 @@ $statusLabels = [
     <link rel="stylesheet" href="/css/style.css?v=<?= time() ?>">
     <title>Тикет #<?= $ticket['id'] ?></title>
 </head>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('#replyForm');
+        const messageInput = form.querySelector('textarea[name="message"]');
+        const repliesContainer = document.querySelector('#replies');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch('/support/reply', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
+
+            if (result.success) {
+                const div = document.createElement('div');
+                div.classList.add('message-card', 'user-message');
+                div.style.opacity = '0';
+                div.innerHTML = `
+                <div class="message-header">
+                    <strong class="message-author">${result.name}</strong>
+                    <span class="message-time">${result.time}</span>
+                </div>
+                <div class="message-content">${result.message}</div>
+                `;
+                repliesContainer.appendChild(div);
+                setTimeout(() => div.style.opacity = '1', 100);
+
+                messageInput.value = '';
+                messageInput.focus();
+
+                repliesContainer.scrollTo({
+                    top: repliesContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+</script>
 
 <body>
     <nav>
@@ -55,35 +105,29 @@ $statusLabels = [
         <section class="messages-section">
             <h3 class="admin-form-title">💬 История</h3>
 
-            <?php if (empty($replies)): ?>
-                <div class="empty-state">
-                    <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">💭</div>
-                    <h3>Переписка по тикету пока пуста</h3>
-                    <p>Опишите вашу проблему более подробно</p>
-                </div>
-            <?php else: ?>
-                <div class="messages-container">
+            <div id="replies" class="messages-container">
+                <?php if (empty($replies)): ?>
+                    <div class="empty-state">
+                        <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">💭</div>
+                        <h3>Переписка по тикету пока пуста</h3>
+                        <p>Опишите вашу проблему более подробно</p>
+                    </div>
+                <?php else: ?>
                     <?php foreach ($replies as $r): ?>
-                        <?php
-                        $isAdmin = isset($r['role']) && $r['role'] === 'admin';
-                        ?>
+                        <?php $isAdmin = isset($r['role']) && $r['role'] === 'admin'; ?>
                         <div class="message-card <?= $isAdmin ? 'admin-message' : 'user-message' ?>">
                             <div class="message-header">
                                 <strong class="message-author">
                                     <?= htmlspecialchars($r['name']) ?>
-                                    <?php if ($isAdmin): ?>
-                                        <span class="admin-badge">Администратор</span>
-                                    <?php endif; ?>
+                                    <?php if ($isAdmin): ?><span class="admin-badge">Администратор</span><?php endif; ?>
                                 </strong>
                                 <span class="message-time"><?= date('d.m.Y H:i', strtotime($r['created_at'])) ?></span>
                             </div>
-                            <div class="message-content">
-                                <?= nl2br(htmlspecialchars($r['message'])) ?>
-                            </div>
+                            <div class="message-content"><?= nl2br(htmlspecialchars($r['message'])) ?></div>
                         </div>
                     <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </section>
 
         <section class="admin-form">
@@ -101,14 +145,14 @@ $statusLabels = [
                 <?php unset($_SESSION['flash_success']); ?>
             <?php endif; ?>
             <h3 class="admin-form-title">✍️ Добавить ответ</h3>
-            <form method="POST" action="/support/reply" class="admin-form-grid">
+            <form id="replyForm" method="POST" action="/support/reply" class="admin-form-grid">
                 <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
                 <div style="grid-column: 1 / -1;">
                     <textarea name="message" placeholder="Введите ваш ответ..."
                         class="form-input form-textarea" rows="4" required></textarea>
                 </div>
                 <div>
-                    <button type="submit" class="course-action">📤 Отправить ответ</button>
+                    <button type="submit" class="course-action">📤 Отправить</button>
                 </div>
             </form>
 
@@ -117,7 +161,7 @@ $statusLabels = [
                 <form method="POST" action="/admin/support/delete" style="display:inline-block; margin-top:10px;" onsubmit="return confirm('Вы уверены, что хотите удалить этот тикет?')">
                     <input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>">
                     <button type="submit" class="admin-btn btn-delete btn-small" style="background:#dc3545;color:white;">
-                        ❌ Удалить
+                        ❌ Удалить тикет
                     </button>
                 </form>
             <?php endif; ?>

@@ -16,6 +16,62 @@ $statusLabels = [
     <link rel="stylesheet" href="/css/style.css?v=<?= time() ?>">
     <title>Тикет #<?= (int)$ticket['id'] ?> — Админ</title>
 </head>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('#replyForm');
+        const messageInput = form.querySelector('textarea[name="message"]');
+        const repliesContainer = document.querySelector('#replies');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch('/support/reply', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
+
+            if (result.success) {
+                const div = document.createElement('div');
+                const isAdmin = result.role === 'admin';
+                div.classList.add('message-card', isAdmin ? 'admin-message' : 'user-message');
+                div.style.opacity = '0';
+
+                div.innerHTML = `
+                    <div class="message-header">
+                        <strong class="message-author">
+                            ${result.name}
+                            ${isAdmin ? '<span class="admin-badge">Администратор</span>' : ''}
+                        </strong>
+                        <span class="message-time">${result.time}</span>
+                    </div>
+                    <div class="message-content">${result.message}</div>
+                `;
+
+                repliesContainer.appendChild(div);
+                setTimeout(() => div.style.opacity = '1', 100);
+
+                messageInput.value = '';
+                messageInput.focus();
+
+                repliesContainer.scrollTo({
+                    top: repliesContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+</script>
 
 <body>
     <nav>
@@ -68,7 +124,7 @@ $statusLabels = [
                     <p>Будьте первым, кто ответит пользователю</p>
                 </div>
             <?php else: ?>
-                <div class="messages-container">
+                <div id="replies" class="messages-container">
                     <?php foreach ($replies as $reply):
                         $isAdmin = (isset($reply['role']) && $reply['role'] === 'admin') || ($reply['name'] === $user['name']);
                     ?>
@@ -89,7 +145,7 @@ $statusLabels = [
 
         <section class="admin-form">
             <h3 class="admin-form-title">✍️ Ответить пользователю</h3>
-            <form method="POST" action="/admin/support/reply" class="admin-form-grid">
+            <form id="replyForm" method="POST" action="/admin/support/reply" class="admin-form-grid">
                 <input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>">
                 <div style="grid-column: 1 / -1;">
                     <textarea name="message" placeholder="Введите ваш ответ пользователю..." class="form-input form-textarea" rows="5" required></textarea>
@@ -106,16 +162,6 @@ $statusLabels = [
                     </div>
                 </div>
             </form>
-
-            <?php if ($ticket['status'] === 'closed' && ($user['role'] === 'admin' || $user['id'] === $ticket['user_id'])): ?>
-                <form method="POST" action="/admin/support/delete" style="display:inline-block;margin-left:10px;" onsubmit="return confirm('Вы уверены, что хотите удалить этот тикет?')">
-                    <input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>">
-                    <br>
-                    <button type="submit" class="admin-btn btn-delete btn-small" style="background:#dc3545;color:white;">
-                        ❌ Удалить тикет
-                    </button>
-                </form>
-            <?php endif; ?>
         </section>
     </div>
 
@@ -126,9 +172,64 @@ $statusLabels = [
             const statusBadge = document.getElementById('status-badge');
             const statusMap = <?= json_encode($statusLabels, JSON_UNESCAPED_UNICODE) ?>;
 
+            const replyForm = document.getElementById('replyForm');
+
+            function createDeleteFormElement() {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/support/delete';
+                form.style.display = 'inline-block';
+                form.style.marginLeft = '10px';
+                form.onsubmit = function() {
+                    return confirm('Вы уверены, что хотите удалить этот тикет?');
+                };
+
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'ticket_id';
+                hidden.value = String(ticketId);
+                form.appendChild(hidden);
+
+                const br = document.createElement('br');
+                form.appendChild(br);
+
+                const btn = document.createElement('button');
+                btn.type = 'submit';
+                btn.className = 'admin-btn btn-delete btn-small';
+                btn.style.background = '#dc3545';
+                btn.style.color = 'white';
+                btn.textContent = '❌ Удалить тикет';
+                form.appendChild(btn);
+
+                return form;
+            }
+
+            function ensureDeleteButtonPresent() {
+                if (document.getElementById('ticket-delete-form')) return;
+
+                const container = document.createElement('div');
+                container.id = 'ticket-delete-form';
+                container.style.marginTop = '10px';
+
+                const form = createDeleteFormElement();
+                container.appendChild(form);
+
+                if (replyForm && replyForm.parentNode) {
+                    replyForm.parentNode.insertBefore(container, replyForm.nextSibling);
+                } else {
+                    const header = document.querySelector('.ticket-header');
+                    if (header) header.appendChild(container);
+                }
+            }
+
+            function removeDeleteButton() {
+                const existing = document.getElementById('ticket-delete-form');
+                if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+            }
+
             statusSelect.addEventListener('change', async function() {
                 const newStatus = this.value;
-                const container = this.closest('.form-input');
+                const container = this.closest('.form-input') || this.parentNode;
                 container.classList.add('blink');
                 this.disabled = true;
                 this.style.border = '2px solid #667eea';
@@ -154,6 +255,12 @@ $statusLabels = [
 
                         statusBadge.textContent = statusMap[newStatus] || newStatus;
                         statusBadge.className = 'status-badge status-' + newStatus;
+
+                        if (newStatus === 'closed') {
+                            ensureDeleteButtonPresent();
+                        } else {
+                            removeDeleteButton();
+                        }
 
                         this.style.border = '2px solid #28a745';
                         this.style.backgroundColor = '#f0fff4';
@@ -184,6 +291,10 @@ $statusLabels = [
                     alert('Не удалось сохранить статус: ' + (err.message || 'ошибка'));
                 }
             });
+
+            if (<?= json_encode($ticket['status']) ?> === 'closed') {
+                ensureDeleteButtonPresent();
+            }
         })();
     </script>
 </body>
