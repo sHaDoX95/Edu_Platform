@@ -1,9 +1,12 @@
 <?php
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../core/Logger.php';
+require_once __DIR__ . '/../models/SystemSetting.php';
 
-class AuthController {
-    public function login() {
+class AuthController
+{
+    public function login()
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'];
             $password = $_POST['password'];
@@ -39,8 +42,15 @@ class AuthController {
         require_once __DIR__ . '/../views/auth/login.php';
     }
 
-    public function register() {
+    public function register()
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (SystemSetting::get('registration_enabled', 'true') !== 'true') {
+                $error = "Регистрация временно закрыта";
+                require_once __DIR__ . '/../views/auth/register.php';
+                return;
+            }
+            
             $email = $_POST['email'];
             $password = $_POST['password'];
             $password_confirm = $_POST['password_confirm'];
@@ -79,7 +89,8 @@ class AuthController {
         require_once __DIR__ . '/../views/auth/register.php';
     }
 
-    public function logout() {
+    public function logout()
+    {
         $user = User::find($_SESSION['user_id'] ?? 0);
         if ($user) {
             Logger::log('Выход из системы', "ID: {$user['id']}, Email: {$user['email']}");

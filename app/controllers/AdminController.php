@@ -580,7 +580,7 @@ class AdminController
             }
 
             $this->logAction("Обновлены настройки системы");
-            header("Location: /admin/settings?success=1");
+            header("Location: /admin/systemSettings?success=1");
             exit;
         }
 

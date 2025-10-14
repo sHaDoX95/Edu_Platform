@@ -3,37 +3,43 @@ require_once __DIR__ . '/../core/Database.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/Logger.php';
 
-class User {
+class User
+{
     // ----------------- CRUD -----------------
-    public static function all() {
+    public static function all()
+    {
         $db = Database::connect();
         $stmt = $db->query("SELECT id, name, email, role, blocked FROM users ORDER BY id");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function find($id) {
+    public static function find($id)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("SELECT id, name, email, role FROM users WHERE id = :id LIMIT 1");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function findByEmail($email) {
+    public static function findByEmail($email)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
         $stmt->execute(['email' => $email]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function create($name, $email, $passwordHash, $role = 'student') {
+    public static function create($name, $email, $passwordHash, $role = 'student')
+    {
         $db = Database::connect();
         try {
             $stmt = $db->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
             $stmt->execute([$name, $email, $passwordHash, $role]);
+            $userId = $db->lastInsertId();
 
-            Logger::log("Создан пользователь", "Имя: $name, Email: $email, Роль: $role");
+            Logger::log("Создан пользователь", "ID: $userId, Имя: $name, Email: $email, Роль: $role");
 
-            return true;
+            return $userId;
         } catch (PDOException $e) {
             if ($e->getCode() === '23505') {
                 return false;
@@ -42,7 +48,8 @@ class User {
         }
     }
 
-    public static function update($id, $name, $email, $role = null, $passwordHash = null) {
+    public static function update($id, $name, $email, $role = null, $passwordHash = null)
+    {
         $db = Database::connect();
         $fields = ['name' => $name, 'email' => $email];
         $set = "name = :name, email = :email";
@@ -66,7 +73,8 @@ class User {
         return $result;
     }
 
-    public static function updateData($id, $name, $email, $passwordHash = null) {
+    public static function updateData($id, $name, $email, $passwordHash = null)
+    {
         $db = Database::connect();
 
         if ($passwordHash) {
@@ -82,7 +90,8 @@ class User {
         return $result;
     }
 
-    public static function updateRoleAndStatus($id, $role, $blocked) {
+    public static function updateRoleAndStatus($id, $role, $blocked)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("UPDATE users SET role = ?, blocked = ? WHERE id = ?");
         $stmt->execute([$role, $blocked ? true : false, $id]);
@@ -90,7 +99,8 @@ class User {
         Logger::log('Сменена роль/статус пользователя', "ID: $id, Роль: $role, Статус: " . ($blocked ? 'Заблокирован' : 'Активен'));
     }
 
-    public static function delete($id) {
+    public static function delete($id)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("DELETE FROM users WHERE id = :id");
         $result = $stmt->execute(['id' => $id]);
@@ -101,7 +111,8 @@ class User {
     }
 
     // ----------------- Присвоение учителя -----------------
-    public static function assignStudentToTeacher($studentId, $teacherId) {
+    public static function assignStudentToTeacher($studentId, $teacherId)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("INSERT INTO teacher_student (teacher_id, student_id) VALUES (:t, :s) ON CONFLICT (teacher_id, student_id) DO NOTHING");
         $result = $stmt->execute(['t' => $teacherId, 's' => $studentId]);
@@ -111,7 +122,8 @@ class User {
         return $result;
     }
 
-    public static function detachStudentFromTeacher($studentId, $teacherId) {
+    public static function detachStudentFromTeacher($studentId, $teacherId)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("DELETE FROM teacher_student WHERE teacher_id = :t AND student_id = :s");
         $result = $stmt->execute(['t' => $teacherId, 's' => $studentId]);
@@ -122,13 +134,15 @@ class User {
     }
 
     // ----------------- Получение данных -----------------
-    public static function getTeachers() {
+    public static function getTeachers()
+    {
         $db = Database::connect();
         $stmt = $db->query("SELECT id, name FROM users WHERE role = 'teacher' ORDER BY name");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function getStudentsForTeacher($teacherId) {
+    public static function getStudentsForTeacher($teacherId)
+    {
         $db = Database::connect();
         $stmt = $db->prepare("
             SELECT u.id, u.name, u.email
@@ -141,7 +155,8 @@ class User {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function getUnassignedStudents() {
+    public static function getUnassignedStudents()
+    {
         $db = Database::connect();
         $stmt = $db->query("
             SELECT u.id, u.name, u.email
@@ -154,14 +169,25 @@ class User {
     }
 
     // ----------------- Фильтры и поиск -----------------
-    public static function filter($role = null, $status = null, $q = '', $page = 1, $perPage = 20) {
+    public static function filter($role = null, $status = null, $q = '', $page = 1, $perPage = 20)
+    {
         $db = Database::connect();
         $where = [];
         $params = [];
 
-        if ($role) { $where[] = "role = ?"; $params[] = $role; }
-        if ($status !== null) { $where[] = "blocked = ?"; $params[] = ($status === 'blocked'); }
-        if ($q) { $where[] = "(name ILIKE ? OR email ILIKE ?)"; $params[] = "%$q%"; $params[] = "%$q%"; }
+        if ($role) {
+            $where[] = "role = ?";
+            $params[] = $role;
+        }
+        if ($status !== null) {
+            $where[] = "blocked = ?";
+            $params[] = ($status === 'blocked');
+        }
+        if ($q) {
+            $where[] = "(name ILIKE ? OR email ILIKE ?)";
+            $params[] = "%$q%";
+            $params[] = "%$q%";
+        }
 
         $sqlWhere = $where ? "WHERE " . implode(" AND ", $where) : "";
         $offset = ($page - 1) * $perPage;
@@ -185,13 +211,21 @@ class User {
         ];
     }
 
-    public static function countAll($q = '', $role = '', $status = '') {
+    public static function countAll($q = '', $role = '', $status = '')
+    {
         $db = Database::connect();
         $sql = "SELECT COUNT(*) FROM users WHERE 1=1";
         $params = [];
 
-        if ($q) { $sql .= " AND (name ILIKE ? OR email ILIKE ?)"; $params[] = "%$q%"; $params[] = "%$q%"; }
-        if ($role) { $sql .= " AND role = ?"; $params[] = $role; }
+        if ($q) {
+            $sql .= " AND (name ILIKE ? OR email ILIKE ?)";
+            $params[] = "%$q%";
+            $params[] = "%$q%";
+        }
+        if ($role) {
+            $sql .= " AND role = ?";
+            $params[] = $role;
+        }
         if ($status) {
             if ($status === 'active') $sql .= " AND blocked = false";
             else if ($status === 'blocked') $sql .= " AND blocked = true";
@@ -202,13 +236,21 @@ class User {
         return $stmt->fetchColumn();
     }
 
-    public static function getAll($q = '', $role = '', $status = '', $limit = 10, $offset = 0) {
+    public static function getAll($q = '', $role = '', $status = '', $limit = 10, $offset = 0)
+    {
         $db = Database::connect();
         $sql = "SELECT * FROM users WHERE 1=1";
         $params = [];
 
-        if ($q) { $sql .= " AND (name ILIKE ? OR email ILIKE ?)"; $params[] = "%$q%"; $params[] = "%$q%"; }
-        if ($role) { $sql .= " AND role = ?"; $params[] = $role; }
+        if ($q) {
+            $sql .= " AND (name ILIKE ? OR email ILIKE ?)";
+            $params[] = "%$q%";
+            $params[] = "%$q%";
+        }
+        if ($role) {
+            $sql .= " AND role = ?";
+            $params[] = $role;
+        }
         if ($status) {
             if ($status === 'active') $sql .= " AND blocked = false";
             else if ($status === 'blocked') $sql .= " AND blocked = true";

@@ -148,6 +148,10 @@ $status = $_GET['status'] ?? '';
             <?php endfor; ?>
         </div>
     <?php endif; ?>
+
+    <section style="margin-top: 30px;">
+        <a href="/admin" class="course-action">← Вернуться в админку</a>
+    </section>
 </div>
 
 <script>
