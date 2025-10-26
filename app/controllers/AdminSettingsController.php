@@ -14,6 +14,7 @@ class AdminSettingsController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $settings = $_POST['settings'] ?? [];
             SystemSetting::updateMany($settings);
+
             header("Location: /admin/settings?success=1");
             exit;
         }

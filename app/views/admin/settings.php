@@ -2,25 +2,10 @@
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../../models/SystemSetting.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 $user = Auth::user();
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['settings'])) {
-    $settings = $_POST['settings'];
-    foreach ($settings as $k => $v) {
-        if ($v === 'true' || $v === 'false') $settings[$k] = $v;
-    }
-    SystemSetting::updateMany($settings);
-
-    $_SESSION['flash_success'] = '✅ Настройки успешно обновлены';
-    header('Location: /admin/settings');
-    exit;
-}
-
 $settingsMap = SystemSetting::all();
+
+$showSuccess = isset($_GET['success']) && $_GET['success'] == 1;
 ?>
 <!doctype html>
 <html lang="ru">
@@ -30,21 +15,6 @@ $settingsMap = SystemSetting::all();
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="/css/style.css?v=<?= time() ?>">
     <title>Настройки системы — Админка</title>
-    <style>
-        .flash-message {
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            opacity: 1;
-            transition: opacity 0.5s ease;
-        }
-
-        .flash-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-    </style>
 </head>
 
 <body>
@@ -59,13 +29,6 @@ $settingsMap = SystemSetting::all();
 
     <div class="container">
         <h1 class="hero-title">⚙️ Системные настройки</h1>
-
-        <?php if (!empty($_SESSION['flash_success'])): ?>
-            <div class="flash-message flash-success" id="flash-success">
-                <?= $_SESSION['flash_success'];
-                unset($_SESSION['flash_success']); ?>
-            </div>
-        <?php endif; ?>
 
         <?php if (empty($settingsMap)): ?>
             <p>Настройки ещё не заданы. Добавьте их вручную в таблицу <code>system_settings</code>.</p>
@@ -111,15 +74,18 @@ $settingsMap = SystemSetting::all();
         <?php endif; ?>
     </div>
 
-    <script>
-        const flash = document.getElementById('flash-success');
-        if (flash) {
-            setTimeout(() => {
-                flash.style.opacity = '0';
-                setTimeout(() => flash.remove(), 500);
-            }, 2000);
-        }
-    </script>
+    <?php if ($showSuccess): ?>
+        <script>
+            alert('✅ Настройки успешно обновлены!');
+
+            if (window.history.replaceState) {
+                const url = new URL(window.location);
+                url.searchParams.delete('success');
+                window.history.replaceState(null, '', url.toString());
+            }
+        </script>
+    <?php endif; ?>
+
 </body>
 
 </html>
