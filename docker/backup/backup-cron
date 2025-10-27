@@ -1,0 +1,2 @@
+# Ежедневно в 02:00
+0 2 * * * root /backups/backup.sh >> /var/log/cron.log 2>&1

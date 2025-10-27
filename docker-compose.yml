@@ -33,5 +33,15 @@ services:
     depends_on:
       - php
 
+  backup:
+    build:
+      context: ./docker/backup
+      dockerfile: Dockerfile
+    container_name: edu_backup
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      - db
+
 volumes:
   pgdata:
