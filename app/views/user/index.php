@@ -7,6 +7,7 @@ $user = Auth::user();
 
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,12 +26,58 @@ $user = Auth::user();
         });
     });
 </script>
+
+<style>
+    .chat-button-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .chat-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 25px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        border: none;
+        cursor: pointer;
+        min-width: 180px;
+        justify-content: center;
+    }
+
+    .chat-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .chat-button:active {
+        transform: translateY(0);
+    }
+
+    .chat-icon {
+        font-size: 18px;
+    }
+
+    .chat-text {
+        font-family: inherit;
+    }
+</style>
+
 <body>
     <nav>
         <p>
             Вы вошли как <strong><?= htmlspecialchars($user['name']) ?></strong> |
             <a href="/course">📚 Курсы</a> |
-            <a href="/support">🆘 Поддержка</a> | 
+            <a href="/support">🆘 Поддержка</a> |
             <a href="/auth/logout">🚪 Выйти</a>
         </p>
     </nav>
@@ -40,6 +87,13 @@ $user = Auth::user();
             <div class="user-avatar">👤</div>
             <h1 class="user-name"><?= htmlspecialchars($user['name']) ?></h1>
             <p class="user-welcome">Добро пожаловать в ваш личный кабинет!</p>
+        </div>
+
+        <div class="chat-button-container" style="margin: 20px 0;">
+            <a href="/chat" class="chat-button">
+                <span class="chat-icon">💬</span>
+                <span class="chat-text">Мои чаты</span>
+            </a>
         </div>
 
         <div class="courses-progress">
@@ -56,41 +110,41 @@ $user = Auth::user();
                 <div class="courses-grid">
                     <?php foreach ($courses as $course): ?>
                         <?php
-                            $lessons = Lesson::findByCourse($course['id']);
-                            $stepsTotal = 0;
-                            $stepsDone = 0;
+                        $lessons = Lesson::findByCourse($course['id']);
+                        $stepsTotal = 0;
+                        $stepsDone = 0;
 
-                            foreach ($lessons as $lesson) {
-                                $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
-                                $hasTest = Test::existsForLesson($lesson['id']);
-                                $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
+                        foreach ($lessons as $lesson) {
+                            $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
+                            $hasTest = Test::existsForLesson($lesson['id']);
+                            $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
 
+                            $stepsTotal++;
+                            if ($lessonDone) $stepsDone++;
+
+                            if ($hasTest) {
                                 $stepsTotal++;
-                                if ($lessonDone) $stepsDone++;
-
-                                if ($hasTest) {
-                                    $stepsTotal++;
-                                    if ($testPassed) $stepsDone++;
-                                }
+                                if ($testPassed) $stepsDone++;
                             }
+                        }
 
-                            $percent = $stepsTotal > 0 ? round(($stepsDone / $stepsTotal) * 100) : 0;
+                        $percent = $stepsTotal > 0 ? round(($stepsDone / $stepsTotal) * 100) : 0;
                         ?>
                         <div class="course-card-profile">
                             <h3 class="course-title-profile"><?= htmlspecialchars($course['title']) ?></h3>
                             <p class="course-description-profile"><?= htmlspecialchars($course['description']) ?></p>
-                            
+
                             <div class="course-progress-info">
                                 <span class="course-progress-text">
                                     📊 <?= $stepsDone ?> из <?= $stepsTotal ?> шагов
                                 </span>
                                 <span class="course-progress-percent"><?= $percent ?>%</span>
                             </div>
-                            
+
                             <div class="course-progress-bar-container">
                                 <div class="course-progress-bar" style="width: <?= $percent ?>%"></div>
                             </div>
-                            
+
                             <a href="/course/show?id=<?= $course['id'] ?>" class="course-action">
                                 📓 Перейти к курсу
                             </a>
@@ -100,18 +154,18 @@ $user = Auth::user();
                                     <h4>Уроки курса:</h4>
                                     <?php foreach ($lessons as $lesson): ?>
                                         <?php
-                                            $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
-                                            $hasTest = Test::existsForLesson($lesson['id']);
-                                            $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
+                                        $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
+                                        $hasTest = Test::existsForLesson($lesson['id']);
+                                        $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
 
-                                            $statusClass = '';
-                                            if ($lessonDone && (!$hasTest || $testPassed)) {
-                                                $statusClass = 'status-done';
-                                            } elseif ($lessonDone || $testPassed) {
-                                                $statusClass = 'status-partial';
-                                            } else {
-                                                $statusClass = 'status-not-done';
-                                            }
+                                        $statusClass = '';
+                                        if ($lessonDone && (!$hasTest || $testPassed)) {
+                                            $statusClass = 'status-done';
+                                        } elseif ($lessonDone || $testPassed) {
+                                            $statusClass = 'status-partial';
+                                        } else {
+                                            $statusClass = 'status-not-done';
+                                        }
                                         ?>
                                         <div class="lesson-item-profile">
                                             <div class="lesson-status <?= $statusClass ?>"></div>
@@ -139,4 +193,5 @@ $user = Auth::user();
         </div>
     </div>
 </body>
+
 </html>

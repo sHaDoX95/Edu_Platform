@@ -21,49 +21,158 @@ $statusLabels = [
         const form = document.querySelector('#replyForm');
         const messageInput = form.querySelector('textarea[name="message"]');
         const repliesContainer = document.querySelector('#replies');
+        const ticketId = <?= $ticket['id'] ?>;
+
+        // Находим максимальный ID сообщения при загрузке страницы
+        let lastReplyId = 0;
+        const initialMessages = repliesContainer.querySelectorAll('.message-card');
+        if (initialMessages.length > 0) {
+            // Ищем скрытое поле с ID или получаем из данных
+            initialMessages.forEach(msg => {
+                const messageId = msg.dataset.messageId;
+                if (messageId && messageId > lastReplyId) {
+                    lastReplyId = messageId;
+                }
+            });
+        }
+
+        console.log('Initialized ticket chat for ticket ID:', ticketId, 'Last reply ID:', lastReplyId);
+
+        // Функция для загрузки новых сообщений
+        async function loadNewMessages() {
+            try {
+                console.log('Loading new messages from ID:', lastReplyId);
+                const response = await fetch(`/support/get-replies?ticket_id=${ticketId}&last_reply_id=${lastReplyId}&_=${Date.now()}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('API response:', result);
+
+                if (result.success && result.newMessages && result.newMessages.length > 0) {
+                    console.log('New messages found:', result.newMessages.length);
+
+                    let newMessagesAdded = false;
+
+                    // Добавляем новые сообщения
+                    result.newMessages.forEach(message => {
+                        console.log('Adding new message:', message);
+                        const div = document.createElement('div');
+                        div.classList.add('message-card');
+                        div.dataset.messageId = message.id;
+
+                        let roleClass = 'user-message';
+                        let roleBadge = '';
+
+                        if (message.role === 'admin') {
+                            roleClass = 'admin-message';
+                            roleBadge = '<span class="admin-badge">Администратор</span>';
+                        } else if (message.role === 'teacher') {
+                            roleClass = 'teacher-message';
+                            roleBadge = '<span class="teacher-badge">Преподаватель</span>';
+                        }
+
+                        div.className = `message-card ${roleClass}`;
+                        div.innerHTML = `
+                            <div class="message-header">
+                                <strong class="message-author">
+                                    ${message.name}
+                                    ${roleBadge}
+                                </strong>
+                                <span class="message-time">${message.time}</span>
+                            </div>
+                            <div class="message-content">${message.message}</div>
+                        `;
+
+                        // Убираем состояние "пусто", если оно есть
+                        const emptyState = repliesContainer.querySelector('.empty-state');
+                        if (emptyState) {
+                            emptyState.remove();
+                        }
+
+                        repliesContainer.appendChild(div);
+                        newMessagesAdded = true;
+
+                        // Обновляем lastReplyId
+                        if (message.id > lastReplyId) {
+                            lastReplyId = message.id;
+                        }
+                    });
+
+                    if (newMessagesAdded) {
+                        // Прокручиваем к новому сообщению
+                        repliesContainer.scrollTop = repliesContainer.scrollHeight;
+                        console.log('Last reply ID updated to:', lastReplyId);
+                    }
+                } else if (result.error) {
+                    console.error('API error:', result.error);
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        // Автообновление каждые 3 секунды
+        setInterval(loadNewMessages, 3000);
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const formData = new FormData(form);
-            const response = await fetch('/support/reply', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
 
-            const result = await response.json();
-
-            if (result.error) {
-                alert(result.error);
-                return;
-            }
-
-            if (result.success) {
-                const div = document.createElement('div');
-                div.classList.add('message-card', 'user-message');
-                div.style.opacity = '0';
-                div.innerHTML = `
-                <div class="message-header">
-                    <strong class="message-author">${result.name}</strong>
-                    <span class="message-time">${result.time}</span>
-                </div>
-                <div class="message-content">${result.message}</div>
-                `;
-                repliesContainer.appendChild(div);
-                setTimeout(() => div.style.opacity = '1', 100);
-
-                messageInput.value = '';
-                messageInput.focus();
-
-                repliesContainer.scrollTo({
-                    top: repliesContainer.scrollHeight,
-                    behavior: 'smooth'
+            try {
+                console.log('Sending message...');
+                const response = await fetch('/support/reply', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
                 });
+
+                const result = await response.json();
+                console.log('Send message response:', result);
+
+                if (result.error) {
+                    alert(result.error);
+                    return;
+                }
+
+                if (result.success) {
+                    // Очищаем поле ввода
+                    messageInput.value = '';
+                    messageInput.focus();
+
+                    // Ждем немного и загружаем новые сообщения
+                    setTimeout(loadNewMessages, 1000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка при отправке сообщения');
             }
         });
+
+        // Прокрутка вниз при загрузке страницы
+        repliesContainer.scrollTop = repliesContainer.scrollHeight;
+
+        // Добавляем data-message-id к существующим сообщениям
+        const existingMessages = repliesContainer.querySelectorAll('.message-card');
+        existingMessages.forEach((msg, index) => {
+            // Создаем временный ID на основе порядка сообщений
+            msg.dataset.messageId = index + 1;
+        });
+
+        // Устанавливаем lastReplyId на основе количества сообщений
+        if (existingMessages.length > 0) {
+            lastReplyId = existingMessages.length;
+        }
+
+        console.log('Initial lastReplyId set to:', lastReplyId);
+
+        // Первая загрузка сообщений через секунду
+        setTimeout(loadNewMessages, 1000);
     });
 </script>
 
@@ -113,9 +222,9 @@ $statusLabels = [
                         <p>Опишите вашу проблему более подробно</p>
                     </div>
                 <?php else: ?>
-                    <?php foreach ($replies as $r): ?>
+                    <?php foreach ($replies as $index => $r): ?>
                         <?php $isAdmin = isset($r['role']) && $r['role'] === 'admin'; ?>
-                        <div class="message-card <?= $isAdmin ? 'admin-message' : 'user-message' ?>">
+                        <div class="message-card <?= $isAdmin ? 'admin-message' : 'user-message' ?>" data-message-id="<?= $r['id'] ?? ($index + 1) ?>">
                             <div class="message-header">
                                 <strong class="message-author">
                                     <?= htmlspecialchars($r['name']) ?>

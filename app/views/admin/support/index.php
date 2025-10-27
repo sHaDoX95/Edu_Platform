@@ -25,6 +25,7 @@ $filterStatus = $_GET['status'] ?? '';
         <p>
             Вы вошли как <strong><?= htmlspecialchars($user['name']) ?></strong> |
             <a href="/admin">🛠️ Админ-панель</a> |
+            <a href="/admin/users">👥 Пользователи</a> |
             <a href="/auth/logout">🚪 Выйти</a>
         </p>
     </nav>

@@ -20,6 +20,7 @@ class AdminController
         $ticketsCount = (int)$db->query("SELECT COUNT(*) FROM tickets WHERE status = 'open'")->fetchColumn();
         $teachersCount = (int)$db->query("SELECT COUNT(*) FROM users WHERE role = 'teacher'")->fetchColumn();
         $logsCount = (int)$db->query("SELECT COUNT(*) FROM system_logs")->fetchColumn();
+        $chatsCount = $db->query("SELECT COUNT(*) FROM chats")->fetchColumn();
 
         require_once __DIR__ . '/../views/admin/index.php';
     }

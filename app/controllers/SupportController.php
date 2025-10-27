@@ -151,4 +151,68 @@ class SupportController
         header("Location: /support/view?id=" . $ticket_id);
         exit;
     }
+
+    public function getReplies()
+    {
+        Auth::requireLogin();
+        $user = Auth::user();
+        $db = Database::connect();
+
+        if (!isset($_GET['ticket_id'])) {
+            echo json_encode(['success' => false, 'error' => 'Ticket ID is required']);
+            exit;
+        }
+
+        $ticketId = (int)$_GET['ticket_id'];
+
+        // Проверяем доступ пользователя к тикету
+        $stmt = $db->prepare("SELECT * FROM tickets WHERE id = ? AND user_id = ?");
+        $stmt->execute([$ticketId, $user['id']]);
+        $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$ticket) {
+            echo json_encode(['success' => false, 'error' => 'Ticket not found']);
+            exit;
+        }
+
+        // Получаем ID последнего сообщения, если передан
+        $lastReplyId = isset($_GET['last_reply_id']) ? (int)$_GET['last_reply_id'] : 0;
+
+        // Получаем только новые сообщения (те, у которых ID больше lastReplyId)
+        $stmt = $db->prepare("
+        SELECT r.*, u.name, u.role 
+        FROM ticket_replies r 
+        JOIN users u ON u.id = r.user_id 
+        WHERE ticket_id = ? AND r.id > ?
+        ORDER BY r.created_at ASC
+    ");
+        $stmt->execute([$ticketId, $lastReplyId]);
+        $replies = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Форматируем сообщения для ответа
+        $formattedReplies = [];
+        $maxReplyId = $lastReplyId;
+
+        foreach ($replies as $reply) {
+            $formattedReplies[] = [
+                'id' => $reply['id'],
+                'name' => htmlspecialchars($reply['name']),
+                'message' => nl2br(htmlspecialchars($reply['message'])),
+                'time' => date('d.m.Y H:i', strtotime($reply['created_at'])),
+                'role' => $reply['role'] ?? 'user'
+            ];
+            // Запоминаем максимальный ID для следующего запроса
+            if ($reply['id'] > $maxReplyId) {
+                $maxReplyId = $reply['id'];
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'newMessages' => $formattedReplies,
+            'lastReplyId' => $maxReplyId
+        ]);
+        exit;
+    }
 }

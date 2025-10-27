@@ -81,7 +81,7 @@ class AdminSupportController
         $stmt->execute([$ticket_id]);
         $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $repliesStmt = $db->prepare("SELECT r.*, u.name 
+        $repliesStmt = $db->prepare("SELECT r.*, u.name, u.role 
                                      FROM ticket_replies r 
                                      JOIN users u ON u.id = r.user_id 
                                      WHERE ticket_id = ? 
@@ -104,14 +104,29 @@ class AdminSupportController
 
         $ticket_id = $_POST['ticket_id'];
         $message = $_POST['message'];
+        $status = $_POST['status'] ?? 'in_progress';
 
         $db = Database::connect();
 
+        // Добавляем сообщение
         $stmt = $db->prepare("INSERT INTO ticket_replies (ticket_id, user_id, message) VALUES (?, ?, ?)");
         $stmt->execute([$ticket_id, $user['id'], $message]);
 
-        $update = $db->prepare("UPDATE tickets SET status = 'in_progress', updated_at = NOW() WHERE id = ?");
-        $update->execute([$ticket_id]);
+        // Обновляем статус и время
+        $update = $db->prepare("UPDATE tickets SET status = ?, updated_at = NOW() WHERE id = ?");
+        $update->execute([$status, $ticket_id]);
+
+        // Если это AJAX запрос, возвращаем JSON
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+            echo json_encode([
+                'success' => true,
+                'name' => htmlspecialchars($user['name']),
+                'role' => $user['role'],
+                'message' => nl2br(htmlspecialchars($message)),
+                'time' => date('d.m.Y H:i')
+            ]);
+            exit;
+        }
 
         header("Location: /admin/support/view?id=" . $ticket_id);
         exit;
@@ -144,6 +159,74 @@ class AdminSupportController
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
+    }
+
+    public function getReplies()
+    {
+        Auth::requireLogin();
+        $user = Auth::user();
+        if ($user['role'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Нет доступа']);
+            exit;
+        }
+
+        if (!isset($_GET['ticket_id'])) {
+            echo json_encode(['success' => false, 'error' => 'Ticket ID is required']);
+            exit;
+        }
+
+        $ticketId = (int)$_GET['ticket_id'];
+        $lastReplyId = isset($_GET['last_reply_id']) ? (int)$_GET['last_reply_id'] : 0;
+
+        $db = Database::connect();
+
+        // Проверяем существование тикета
+        $stmt = $db->prepare("SELECT * FROM tickets WHERE id = ?");
+        $stmt->execute([$ticketId]);
+        $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$ticket) {
+            echo json_encode(['success' => false, 'error' => 'Ticket not found']);
+            exit;
+        }
+
+        // Получаем только новые сообщения (те, у которых ID больше lastReplyId)
+        $stmt = $db->prepare("
+            SELECT r.*, u.name, u.role 
+            FROM ticket_replies r 
+            JOIN users u ON u.id = r.user_id 
+            WHERE ticket_id = ? AND r.id > ?
+            ORDER BY r.created_at ASC
+        ");
+        $stmt->execute([$ticketId, $lastReplyId]);
+        $replies = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Форматируем сообщения для ответа
+        $formattedReplies = [];
+        $maxReplyId = $lastReplyId;
+        
+        foreach ($replies as $reply) {
+            $formattedReplies[] = [
+                'id' => $reply['id'],
+                'name' => htmlspecialchars($reply['name']),
+                'message' => nl2br(htmlspecialchars($reply['message'])),
+                'time' => date('d.m.Y H:i', strtotime($reply['created_at'])),
+                'role' => $reply['role'] ?? 'user'
+            ];
+            // Запоминаем максимальный ID для следующего запроса
+            if ($reply['id'] > $maxReplyId) {
+                $maxReplyId = $reply['id'];
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'newMessages' => $formattedReplies,
+            'lastReplyId' => $maxReplyId
+        ]);
+        exit;
     }
 
     public function delete()
