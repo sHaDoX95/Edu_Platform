@@ -264,4 +264,20 @@ class User
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public static function createFromOAuth($name, $email, $role = 'student')
+    {
+        $db = Database::connect();
+        // Генерируем случайный пароль, чтобы не нарушать NOT NULL
+        $hashedPassword = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
+
+        $stmt = $db->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$name, $email, $hashedPassword, $role]);
+
+        $userId = $db->lastInsertId();
+
+        Logger::log('Создан пользователь через Yandex OAuth', "ID: $userId, Имя: $name, Email: $email, Роль: $role");
+
+        return $userId;
+    }
 }
