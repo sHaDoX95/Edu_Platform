@@ -115,4 +115,12 @@ class Progress
             throw $e;
         }
     }
+
+    public static function hasProgress($userId, $lessonId)
+    {
+        $db = Database::connect();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM lesson_progress WHERE user_id = ? AND lesson_id = ?");
+        $stmt->execute([$userId, $lessonId]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
 }

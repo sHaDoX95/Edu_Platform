@@ -70,6 +70,38 @@ $user = Auth::user();
     .chat-text {
         font-family: inherit;
     }
+    
+    .no-started-courses {
+        text-align: center;
+        padding: 40px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin: 20px 0;
+    }
+    
+    .no-started-courses-icon {
+        font-size: 4em;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .start-course-button {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .start-course-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
 </style>
 
 <body>
@@ -99,25 +131,42 @@ $user = Auth::user();
         <div class="courses-progress">
             <h2 class="section-title">📈 Прогресс по курсам</h2>
 
-            <?php if (count($courses) === 0): ?>
-                <div class="empty-courses">
-                    <div>📚</div>
-                    <h3>Курсы не найдены</h3>
-                    <p>У вас пока нет доступных курсов</p>
-                    <a href="/course" class="course-action">Найти курсы</a>
+            <?php
+            // Фильтруем курсы: оставляем только те, которые пользователь начал
+            $startedCourses = array_filter($courses, function($course) use ($user) {
+                $lessons = Lesson::findByCourse($course['id']);
+                foreach ($lessons as $lesson) {
+                    // Если есть хотя бы один начатый урок (пройден или есть запись в lesson_progress)
+                    if (Progress::isCompleted($user['id'], $lesson['id']) || 
+                        Progress::hasProgress($user['id'], $lesson['id'])) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            ?>
+
+            <?php if (count($startedCourses) === 0): ?>
+                <div class="no-started-courses">
+                    <div class="no-started-courses-icon">📚</div>
+                    <h3>Вы еще не начали изучать курсы</h3>
+                    <p>Начните изучение любого курса, и он появится здесь</p>
+                    <a href="/course" class="start-course-button">Начать изучение курсов</a>
                 </div>
             <?php else: ?>
                 <div class="courses-grid">
-                    <?php foreach ($courses as $course): ?>
+                    <?php foreach ($startedCourses as $course): ?>
                         <?php
                         $lessons = Lesson::findByCourse($course['id']);
                         $stepsTotal = 0;
                         $stepsDone = 0;
+                        $hasAnyProgress = false;
 
                         foreach ($lessons as $lesson) {
                             $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
                             $hasTest = Test::existsForLesson($lesson['id']);
                             $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
+                            $hasProgress = Progress::hasProgress($user['id'], $lesson['id']);
 
                             $stepsTotal++;
                             if ($lessonDone) $stepsDone++;
@@ -125,6 +174,11 @@ $user = Auth::user();
                             if ($hasTest) {
                                 $stepsTotal++;
                                 if ($testPassed) $stepsDone++;
+                            }
+                            
+                            // Отмечаем, что курс начат если есть прогресс по любому уроку
+                            if ($lessonDone || $hasProgress) {
+                                $hasAnyProgress = true;
                             }
                         }
 
@@ -146,7 +200,7 @@ $user = Auth::user();
                             </div>
 
                             <a href="/course/show?id=<?= $course['id'] ?>" class="course-action">
-                                📓 Перейти к курсу
+                                <?= $percent > 0 ? '📓 Продолжить обучение' : '📓 Начать обучение' ?>
                             </a>
 
                             <?php if (count($lessons) > 0): ?>
@@ -157,11 +211,12 @@ $user = Auth::user();
                                         $lessonDone = Progress::isCompleted($user['id'], $lesson['id']);
                                         $hasTest = Test::existsForLesson($lesson['id']);
                                         $testPassed = $hasTest && Progress::isTestPassed($user['id'], $lesson['id']);
+                                        $hasProgress = Progress::hasProgress($user['id'], $lesson['id']);
 
                                         $statusClass = '';
                                         if ($lessonDone && (!$hasTest || $testPassed)) {
                                             $statusClass = 'status-done';
-                                        } elseif ($lessonDone || $testPassed) {
+                                        } elseif ($lessonDone || $testPassed || $hasProgress) {
                                             $statusClass = 'status-partial';
                                         } else {
                                             $statusClass = 'status-not-done';
@@ -174,12 +229,26 @@ $user = Auth::user();
                                                 <div class="lesson-details">
                                                     <span class="lesson-detail">
                                                         <span class="icon-emoji">📖</span>
-                                                        <?= $lessonDone ? 'Пройден' : 'Не пройден' ?>
+                                                        <?php if ($lessonDone): ?>
+                                                            Пройден
+                                                        <?php elseif ($hasProgress): ?>
+                                                            В процессе
+                                                        <?php else: ?>
+                                                            Не начат
+                                                        <?php endif; ?>
                                                     </span>
-                                                    <span class="lesson-detail">
-                                                        <span class="icon-emoji">🧪</span>
-                                                        <?= $hasTest ? ($testPassed ? 'Пройден' : 'Не пройден') : 'Нет теста' ?>
-                                                    </span>
+                                                    <?php if ($hasTest): ?>
+                                                        <span class="lesson-detail">
+                                                            <span class="icon-emoji">🧪</span>
+                                                            <?php if ($testPassed): ?>
+                                                                Пройден
+                                                            <?php elseif ($hasProgress): ?>
+                                                                В процессе
+                                                            <?php else: ?>
+                                                                Не пройден
+                                                            <?php endif; ?>
+                                                        </span>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>

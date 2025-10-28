@@ -15,7 +15,7 @@ $user = Auth::user();
     <nav>
         <p>
             Вы вошли как <strong><?= htmlspecialchars($user['name']) ?></strong> |
-            <a href="/admin/courses">📚 Курсы</a> |
+            <a href="/course">📚 Все курсы</a> |
             <a href="/auth/logout">🚪 Выйти</a>
         </p>
     </nav>

@@ -206,4 +206,14 @@ class Course
         $stmt->execute([$teacherId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public static function isOwner($teacherId, $courseId)
+    {
+        $db = Database::connect();
+        $stmt = $db->prepare("SELECT teacher_id FROM courses WHERE id = ?");
+        $stmt->execute([$courseId]);
+        $course = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $course && $course['teacher_id'] == $teacherId;
+    }
 }
